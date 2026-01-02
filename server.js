@@ -1,16 +1,7 @@
-// server.js
-import express from "express";
-import path from "path";
+import app from "./src/app.js";
+import { PORT } from "./config/env.js"
+import 'dotenv/config';
 
-const app = express();
-const PORT = 3000;
-
-// Statische Dateien
-app.use(express.static(path.join(process.cwd(), "public")));
-
-// Beispiel-API
-app.get("/api/status", (req, res) => {
-  res.json({ status: "ok", timestamp: Date.now() });
+app.listen(PORT, () => {
+  console.log("Server läuft auf Port 3000");
 });
-
-app.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
