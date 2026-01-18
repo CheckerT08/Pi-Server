@@ -21,6 +21,7 @@
   "homepage": "https://github.com/CheckerT08/Dashboard#readme",
   "dependencies": {
     "dotenv": "^17.2.3",
+    "ejs": "^4.0.1",
     "express": "^5.2.1",
     "systeminformation": "^5.30.2"
   }

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="/js/raspi-stats/raspi-stats.page.js"></script>
+  <link rel="stylesheet" href="/css/main.css">
+  <title>Stats viewer</title>
+</head>
+<body>
+  <h1>Raspberry Pi Stats</h1>
+  
+  <div id="stats-container">
+    <p>CPU Last: <%= cpu %> %</p>
+    <p>RAM: <%= ram %></p>
+    <p>Temperatur: <%= temp %> °C</p>
+    <p>Festplatte: <%= disk %></p>
+  </div>
+</body>
+</html>
