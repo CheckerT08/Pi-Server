@@ -1,9 +1,65 @@
+/* Grundlayout */
 body {
-    font-family: sans-serif;
-    background: #222;
-    color: #eee;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 1rem;
+  max-width: 1000px;
+  background-color: darkslategrey;
 }
 
-.error-display {
-    color: red;
+/* Formular */
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+form input,
+form button {
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+form input {
+  flex: 1 1 150px;
+}
+
+form button {
+  flex: 1 1 100%;
+}
+
+/* Tabelle */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto; /* wichtig für mobile */
+}
+
+th, td {
+  padding: 0.5rem;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Status */
+tr.done {
+  opacity: 0.6;
+}
+
+tr.overdue {
+  background-color: #ffeaea;
+}
+
+/* Mobile Optimierung */
+@media (max-width: 600px) {
+  form {
+    flex-direction: column;
+  }
+
+  form input,
+  form button {
+    width: 100%;
+  }
 }

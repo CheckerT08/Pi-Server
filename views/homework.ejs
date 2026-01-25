@@ -1,14 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homework Manager</title>
   <link rel="stylesheet" href="/css/main.css">
-  <title>Homework</title>
+  <script src="/js/homework.js" type="module"></script>
 </head>
 <body>
-  <p>NOCH NICHT FERTIG</p>
-  <p id="homework-text-display"></p>
-  <p id="homework-error-display"></p>
+  <h1>Homework Manager</h1>
+
+  <!-- Neue Aufgabe erstellen -->
+  <h2>Neue Aufgabe</h2>
+  <form id="addTaskForm" autocomplete="off">
+    <input type="text" name="name" placeholder="Name" required>
+    <input type="text" name="subject" placeholder="Fach">
+    <input type="date" name="dueDate" required>
+    <input type="text" name="description" placeholder="Beschreibung">
+    <button type="submit">Erstellen</button>
+  </form>
+
+  <!-- Tabelle -->
+  <h2>Aufgaben</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Beschreibung</th>
+        <th>Fällig</th>
+        <th>Fach</th>
+        <th>Status</th>
+        <th>Aktionen</th>
+      </tr>
+    </thead>
+    <tbody id="tasksTable">
+      <% 
+        // nach nächster Fälligkeit sortieren
+        tasks.sort((a, b) => {
+          // zuerst nach Status: unerledigt oben, erledigt unten
+          if (a.done !== b.done) return a.done ? 1 : -1;
+
+          // dann nach Fälligkeitsdatum
+          return new Date(a.dueDate) - new Date(b.dueDate);
+        });
+        tasks.forEach(task => { 
+          const isOverdue = !task.done && new Date(task.dueDate) < new Date();
+      %>
+      <tr data-id="<%= task.id %>" class="<%= task.done ? 'done' : isOverdue ? 'overdue' : '' %>">
+        <td><input autocomplete="off" type="text" value="<%= task.name %>" class="editField" data-field="name" <%= task.done ? 'disabled' : '' %>></td>
+        <td><input autocomplete="off" type="text" value="<%= task.description %>" class="editField" data-field="description" <%= task.done ? 'disabled' : '' %>></td>
+        <td><input autocomplete="off" type="date" value="<%= new Date(task.dueDate).toISOString().slice(0,10) %>" class="editField" data-field="dueDate" <%= task.done ? 'disabled' : '' %>></td>
+        <td><input autocomplete="off" type="text" value="<%= task.subject %>" class="editField" data-field="subject" <%= task.done ? 'disabled' : '' %>></td>
+        <td><%= task.done ? 'Erledigt' : isOverdue ? 'Überfällig' : 'Offen' %></td>
+        <td>
+          <% if(!task.done){ %>
+            <button class="completeBtn">✔️</button>
+          <% } %>
+          <button class="deleteBtn">🗑️</button>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
 </body>
 </html>
