@@ -53,9 +53,10 @@
         <td><%= task.done ? 'Erledigt' : isOverdue ? 'Überfällig' : 'Offen' %></td>
         <td>
           <% if(!task.done){ %>
-            <button class="completeBtn">✔️</button>
+            <button class="completeBtn">COMPLETE</button>
+          <% } else { %>
+          <button class="deleteBtn">DELETE</button>
           <% } %>
-          <button class="deleteBtn">🗑️</button>
         </td>
       </tr>
       <% }) %>

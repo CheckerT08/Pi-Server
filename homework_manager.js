@@ -51,16 +51,21 @@ export function loadHomework() {
   return JSON.parse(fs.readFileSync(HOMEWORK_PATH, "utf-8"))
     .map(t => new Task(t))
 }
+homework = loadHomework()
 
 // Alle 24 Stunden einmal aufräumen (reicht völlig aus)
-setInterval(() => {
+setInterval(filterHomework, 24 * 60 * 60 * 1000);
+
+function filterHomework() {
   const originalLength = homework.length;
   const updatedHomework = homework.filter(task => !task.shouldBeDeleted(10));
+  console.log('triggered: ' + originalLength + ' ' + updatedHomework.length);
   if (updatedHomework.length < originalLength) {
     homework = updatedHomework; 
     saveHomework(homework);
     console.log(`Cleanup: ${originalLength - updatedHomework.length} alte Aufgaben entfernt.`);
   }
-}, 24 * 60 * 60 * 1000); 
+}
 
-homework = loadHomework()
+filterHomework();
+
