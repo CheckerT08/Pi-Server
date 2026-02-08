@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto"; // Oben hinzufügen
-import { validateHeaderValue } from "http";
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,7 +33,7 @@ export class Task {
     return !this.done && this.dueDate < new Date()
   }
 
-  shouldBeDeleted(days = 10) {
+  shouldBeDeleted(days = 2) {
     if (!this.done) return false
     const ms = days * 24 * 60 * 60 * 1000
     return this.dueDate.getTime() < Date.now() - ms
@@ -58,7 +57,7 @@ setInterval(filterHomework, 24 * 60 * 60 * 1000);
 
 function filterHomework() {
   const originalLength = homework.length;
-  const updatedHomework = homework.filter(task => !task.shouldBeDeleted(10));
+  const updatedHomework = homework.filter(task => !task.shouldBeDeleted(2));
   console.log('triggered: ' + originalLength + ' ' + updatedHomework.length);
   if (updatedHomework.length < originalLength) {
     homework = updatedHomework; 
