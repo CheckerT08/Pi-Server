@@ -20,6 +20,11 @@
   </form>
 
   <!-- Tabelle -->
+  <% 
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+  %>
+
   <h2>Aufgaben</h2>
   <table>
     <thead>
@@ -43,7 +48,7 @@
           return new Date(a.dueDate) - new Date(b.dueDate);
         });
         tasks.forEach(task => { 
-          const isOverdue = !task.done && new Date(task.dueDate) < new Date();
+          const isOverdue = !task.done && new Date(task.dueDate) <= tomorrow;
       %>
       <tr data-id="<%= task.id %>" class="<%= task.done ? 'done' : isOverdue ? 'overdue' : '' %>">
         <td><input autocomplete="off" type="text" value="<%= task.name %>" class="editField" data-field="name" <%= task.done ? 'disabled' : '' %>></td>

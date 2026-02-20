@@ -26,15 +26,17 @@ let stats = { cpu: '...', ram: '...', temp: '...', diskText: '...' };
 
 //#region Web-Pages
 app.get('/', (req, res) => {
-
   res.render('index', {
-
   });
 });
 
+app.get('/google', (req, res) => {
+  res.render('google', {
+
+  });
+})
+
 app.get('/stats', (req, res) => {
-  // Hier nutzen wir jetzt das globale 'stats' Objekt, 
-  // das alle 5 Sekunden aktualisiert wird.
   res.render('stats', {
     cpu: stats.cpu,
     ram: stats.ram,
@@ -44,7 +46,6 @@ app.get('/stats', (req, res) => {
 });
 
 app.get('/homework', (req, res) => {
-
   res.render('homework', {
     tasks: homework
   });
