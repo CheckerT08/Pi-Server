@@ -1,4 +1,4 @@
-import { apiCall } from "./api";
+import { apiCall } from "./api.js";
 
 document.getElementById('addTaskForm')
   .addEventListener('submit', async(event) => {
