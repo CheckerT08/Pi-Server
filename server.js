@@ -143,5 +143,5 @@ app.listen(PORT, async () => {
 
   // Einmal sofort beim Start ausführen
   await updateStats();
-  setInterval(updateStats, 5000);
+  setInterval(updateStats, 60000);
 });
