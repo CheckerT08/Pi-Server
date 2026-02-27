@@ -1,0 +1,26 @@
+#stats-container {
+  display: grid;
+  gap: 1rem;
+}
+
+#stats-container > p {
+  margin: 0;
+  background: #1e293b;
+  padding: 1.2rem;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+
+@media (min-width: 600px) {
+  #stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1000px) {
+  #stats-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
