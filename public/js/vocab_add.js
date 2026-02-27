@@ -14,3 +14,10 @@ document.getElementById('addVocabForm')
       alert(err.message);
     }
 });
+
+const textarea = document.querySelector("textarea");
+
+textarea.addEventListener("input", () => {
+  textarea.style.height = "auto";
+  textarea.style.height = textarea.scrollHeight + "px";
+});

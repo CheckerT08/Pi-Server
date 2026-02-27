@@ -150,7 +150,7 @@ app.post('/api/vocab', (req, res) => {
     return res.status(400).json({ error: "Invalid or empty text input." });
   }
 
-  const lines = text.split("\n");
+  const lines = text.split(".");
 
   const cleanedVocab = lines.reduce((acc, line, index) => {
     const trimmed = line.trim();
