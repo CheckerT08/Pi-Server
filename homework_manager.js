@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import crypto from "crypto"; // Oben hinzufügen
+import crypto from "crypto";
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -32,22 +32,16 @@ export class Task {
   isOverdue() {
     return !this.done && this.dueDate < new Date()
   }
-
-  shouldBeDeleted(days = 2) {
-    if (!this.done) return false
-    const ms = days * 24 * 60 * 60 * 1000
-    return this.dueDate.getTime() < Date.now() - ms
-  }
 }
 
 export function saveHomework(tasks) {
   fs.mkdirSync(path.dirname(HOMEWORK_PATH), { recursive: true })
-  fs.writeFileSync(HOMEWORK_PATH, JSON.stringify(tasks, null, 2), "utf-8")
+  fs.writeFileSync(HOMEWORK_PATH, JSON.stringify(tasks, null, 2), 'utf-8')
 }
 
 export function loadHomework() {
   if (!fs.existsSync(HOMEWORK_PATH)) return []
-  return JSON.parse(fs.readFileSync(HOMEWORK_PATH, "utf-8"))
+  return JSON.parse(fs.readFileSync(HOMEWORK_PATH, 'utf-8'))
     .map(t => new Task(t))
 }
 homework = loadHomework()
@@ -57,8 +51,7 @@ setInterval(filterHomework, 24 * 60 * 60 * 1000);
 
 function filterHomework() {
   const originalLength = homework.length;
-  const updatedHomework = homework.filter(task => !task.shouldBeDeleted(2));
-  console.log('triggered: ' + originalLength + ' ' + updatedHomework.length);
+  const updatedHomework = homework.filter(task => !task.done);
   if (updatedHomework.length < originalLength) {
     homework = updatedHomework; 
     saveHomework(homework);

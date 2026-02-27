@@ -6,6 +6,7 @@ import si from 'systeminformation';
 import 'dotenv/config';
 import { PORT } from './config/env.js';
 import { homework, Task, saveHomework } from './homework_manager.js';
+import { vocab, saveVocab } from './vocabulary_manager.js'
 
 const app = express();
 
@@ -50,6 +51,25 @@ app.get('/homework', (req, res) => {
     tasks: homework
   });
 });
+
+app.get('/vocab', (req, res) => {
+  res.render('vocab', {
+
+  });
+});
+
+app.get('/vocab/add', (req, res) => {
+  res.render('vocab/add', {
+    vocab: vocab
+  });
+});
+
+app.get('/vocab/learn', (req, res) => {
+  res.render('vocab/learn', {
+
+  });
+});
+
 //#endregion
 
 //#region APIs
@@ -116,6 +136,60 @@ app.delete("/api/homework/:id", (req, res) => {
   res.json(deleted[0]);
 });
 
+// GET Vocab
+app.get("/api/vocab", (req, res) => {
+  res.json();
+});
+
+// POST Vocab
+app.post('/api/vocab', (req, res) => {
+  const { text } = req.body;
+
+  // Validierung: Existiert Text?
+  if (typeof text !== "string" || !text.trim()) {
+    return res.status(400).json({ error: "Invalid or empty text input." });
+  }
+
+  const lines = text.split("\n");
+
+  const cleanedVocab = lines.reduce((acc, line, index) => {
+    const trimmed = line.trim();
+
+    // Leerzeilen ignorieren
+    if (!trimmed) return acc;
+
+    const parts = trimmed.split(",");
+
+    // Format prüfen
+    if (parts.length !== 2) {
+      throw new Error(`Invalid format in line ${index + 1}: "${line}"`);
+    }
+
+    const [german, other] = parts.map(s => s.trim());
+
+    if (!german || !other) {
+      throw new Error(`Missing value in line ${index + 1}`);
+    }
+
+    // Duplikat prüfen (überschreiben oder blockieren?)
+    if (vocab[german]) {
+      return;
+    }
+
+    acc[german] = other;
+    return acc;
+  }, {});
+
+  // Neue Einträge hinzufügen
+  Object.assign(vocab, cleanedVocab);
+
+  saveVocab(vocab);
+
+  res.status(201).json({
+    message: "Vocab added successfully",
+    added: Object.keys(cleanedVocab).length
+  });
+});
 //#endregion
 
 async function updateStats() {

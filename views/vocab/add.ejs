@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/vocab_add.js" type="module"></script>
+  <title>Add Vocab</title>
+</head>
+<body>
+  <h1>Add Vocab</h1>
+  <form id="addVocabForm" autocomplete="off">
+    <textarea type="text" name="vocab" placeholder="Deutsch,Andere" required></textarea>
+    <button type="submit">Hinzufügen</button>
+  </form>
+  
+  <h1>Alle Vocabs</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Deutsch</th>
+        <th>Andere</th>
+      </tr>
+    </thead>
+    <tbody>
+    <% Object.entries(vocab).forEach(([de, other]) => { %>
+      <tr>
+        <td><%= de %></td>
+        <td><%= other %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</body>
+</html>

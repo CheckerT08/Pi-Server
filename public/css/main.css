@@ -116,7 +116,8 @@ form {
   gap: 1rem;
 }
 
-form input {
+form input,
+form textarea {
   width: 100%;
   padding: 0.9rem;
   border-radius: 10px;
@@ -127,7 +128,8 @@ form input {
   min-height: 48px;
 }
 
-form input:focus {
+form input:focus,
+form textarea:focus{
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
@@ -149,9 +151,10 @@ form button:hover {
   background: #1d4ed8;
 }
 
+/* HIER geändert: automatische gleichmäßige Aufteilung */
 @media (min-width: 900px) {
   form {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 
   form button {
@@ -160,7 +163,7 @@ form button:hover {
 }
 
 /* =====================================================
-   HOMEWORK TABLE – MOBILE (GRÖSSER & BESSER LESBAR)
+   HOMEWORK TABLE – MOBILE
 ===================================================== */
 table {
   width: 100%;
