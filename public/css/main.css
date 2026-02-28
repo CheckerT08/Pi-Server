@@ -1,10 +1,306 @@
-@import url("./base/reset.css");
-@import url("./base/layout.css");
-@import url("./base/typography.css");
+/* =====================================================
+   RESET
+===================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-@import url("./components/dashboard.css");
-@import url("./components/stats.css");
-@import url("./components/form.css");
-@import url("./components/buttons.css");
-@import url("./components/table-mobile.css");
-@import url("./components/table-desktop.css");
+html {
+  font-size: 17px;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  line-height: 1.6;
+  padding: 1.5rem 1rem 3rem 1rem;
+}
+
+/* =====================================================
+   TYPOGRAPHY
+===================================================== */
+h1 {
+  font-size: 1.9rem;
+  margin-bottom: 1.8rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 2.5rem 0 1.2rem 0;
+}
+
+@media (min-width: 900px) {
+  h1 { font-size: 2.2rem; }
+  h2 { font-size: 1.4rem; }
+}
+
+/* =====================================================
+   DASHBOARD LINKS (WIEDERHERGESTELLT)
+===================================================== */
+body > a {
+  display: block;
+  background: #1e293b;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #e5e7eb;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+body > a:hover {
+  background: #2563eb;
+  transform: translateY(-3px);
+}
+
+@media (min-width: 700px) {
+  body > a {
+    display: inline-block;
+    min-width: 220px;
+    margin-right: 1rem;
+  }
+}
+
+/* =====================================================
+   FORMULAR
+===================================================== */
+form {
+  background: #1e293b;
+  padding: 1.5rem;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+form input,
+form textarea {
+  width: 100%;
+  padding: 0.9rem;
+  border-radius: 10px;
+  border: 2px solid #334155;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 1rem;
+  min-height: 48px;
+}
+
+form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+form input:focus,
+form textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
+}
+
+form button {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+form button:hover {
+  background: #1d4ed8;
+}
+
+/* Desktop Formular */
+@media (min-width: 900px) {
+  form {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  form textarea {
+    grid-column: 1 / -1;
+  }
+
+  form button {
+    grid-column: 1 / -1;
+  }
+}
+
+/* =====================================================
+   TABLE – MOBILE (KARTENLAYOUT)
+===================================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+thead {
+  display: none;
+}
+
+tbody {
+  display: grid;
+  gap: 1.2rem;
+}
+
+tr {
+  background: #1e293b;
+  padding: 1.4rem;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  display: grid;
+  gap: 0.9rem;
+}
+
+td {
+  display: flex;
+  flex-direction: column;
+  font-size: 1rem;
+  word-break: break-word;
+}
+
+td::before {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 0.3rem;
+}
+
+/* Homework Labels */
+td:nth-child(1)::before { content: "Name"; }
+td:nth-child(2)::before { content: "Beschreibung"; }
+td:nth-child(3)::before { content: "Fällig"; }
+td:nth-child(4)::before { content: "Fach"; }
+td:nth-child(5)::before { content: "Status"; }
+td:nth-child(6)::before { content: "Aktionen"; }
+
+/* =====================================================
+   TABLE INPUTS (Homework)
+===================================================== */
+.editField {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.8rem;
+  border-radius: 10px;
+  border: 2px solid #334155;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 1rem;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+.completeBtn,
+.deleteBtn {
+  padding: 0.8rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.completeBtn {
+  background: #16a34a;
+  color: white;
+}
+
+.completeBtn:hover {
+  background: #15803d;
+}
+
+.deleteBtn {
+  background: #dc2626;
+  color: white;
+}
+
+.deleteBtn:hover {
+  background: #b91c1c;
+}
+
+/* Status */
+tr.done {
+  opacity: 0.55;
+}
+
+tr.overdue {
+  border-left: 6px solid #ef4444;
+}
+
+/* =====================================================
+   DESKTOP TABLE
+===================================================== */
+@media (min-width: 900px) {
+
+  thead {
+    display: table-header-group;
+    background: #1e293b;
+  }
+
+  tbody {
+    display: table-row-group;
+  }
+
+  tr {
+    display: table-row;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  th, td {
+    padding: 0.8rem;
+    border-bottom: 1px solid #334155;
+    text-align: left;
+  }
+
+  td {
+    display: table-cell;
+    font-size: 0.95rem;
+  }
+
+  td::before {
+    display: none;
+  }
+
+  table {
+    background: #1e293b;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  }
+
+  th {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+  }
+
+  /* Homework Spaltenverteilung (6 Spalten) */
+  table th:nth-child(1) { width: 18%; }
+  table th:nth-child(2) { width: 25%; }
+  table th:nth-child(3) { width: 14%; }
+  table th:nth-child(4) { width: 14%; }
+  table th:nth-child(5) { width: 12%; }
+  table th:nth-child(6) { width: 17%; }
+
+  /* Vocab Tabelle (2 Spalten) */
+  table th:nth-child(1):only-child,
+  table th:nth-child(2):only-child {
+    width: 50%;
+  }
+}
