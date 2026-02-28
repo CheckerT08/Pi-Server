@@ -294,9 +294,9 @@ tr.overdue {
   table th:nth-child(1) { width: 18%; }
   table th:nth-child(2) { width: 25%; }
   table th:nth-child(3) { width: 14%; }
-  table th:nth-child(4) { width: 14%; }
-  table th:nth-child(5) { width: 12%; }
-  table th:nth-child(6) { width: 17%; }
+  table th:nth-child(4) { width: 16%; }
+  table th:nth-child(5) { width: 10%; }
+  table th:nth-child(6) { width: 15%; }
 
   /* Vocab Tabelle (2 Spalten) */
   table th:nth-child(1):only-child,

@@ -85,16 +85,49 @@ app.post("/api/homework", (req, res) => {
       subject: subject || "",
       done: false
     });
+    console.log(`Neue task erstellt: ${task.name}`)
     homework.push(task);
     saveHomework(homework);
     res.status(201).json(task); // Wichtig für das Frontend!
   } catch (err) {
+    console.log(err)
     res.status(400).json({ error: err.message });
   }
 });
 
+// PUT Aufgabe bearbeiten
+app.put("/api/homework/:id", (req, res) => {
+  const { id } = req.params;
+  const task = homework.find(t => t.id === id);
+  console.log(`Bearbeite ${task.name}`)
+
+  if (!task) return res.status(404).json({ error: "Task nicht gefunden" });
+
+  const { name, description, dueDate, subject } = req.body;
+  if (name) task.name = name;
+  if (description) task.description = description;
+  if (dueDate) task.dueDate = new Date(dueDate);
+  if (subject) task.subject = subject;
+
+  saveHomework(homework);
+  res.json(task);
+});
+
+// POST Aufgabe erledigen
+app.post("/api/homework/:id/complete", (req, res) => {
+  const { id } = req.params;
+  const task = homework.find(t => t.id === id);
+  console.log(`Erledige ${task.name}`)
+  if (!task) return res.status(404).json({ error: "Task nicht gefunden" });
+
+  task.complete();
+  saveHomework(homework);
+  res.json(task);
+});
+
 app.delete("/api/homework/:id", (req, res) => {
   const index = homework.findIndex(t => t.id === req.params.id);
+  console.log(`Index: ${index}`)
   if (index === -1) return res.status(404).json({ error: "Nicht gefunden" });
   homework.splice(index, 1);
   saveHomework(homework);
