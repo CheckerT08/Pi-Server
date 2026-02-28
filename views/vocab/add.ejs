@@ -20,13 +20,15 @@
       <tr>
         <th>Deutsch</th>
         <th>Andere</th>
+        <th>Aktionen</th>
       </tr>
     </thead>
     <tbody>
     <% Object.entries(vocab).forEach(([de, other]) => { %>
-      <tr>
+      <tr data-id="<%= de %>">
         <td><%= de %></td>
         <td><%= other %></td>
+        <td><button class="deleteBtn">DELETE</button></td>
       </tr>
     <% }) %>
     </tbody>

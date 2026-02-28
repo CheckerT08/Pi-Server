@@ -73,123 +73,74 @@ app.get('/vocab/learn', (req, res) => {
 //#endregion
 
 //#region APIs
-// GET alle Aufgaben
-app.get("/api/homework", (req, res) => {
-  res.json(homework);
-});
 
-// POST neue Aufgabe
+// --- HOMEWORK ---
 app.post("/api/homework", (req, res) => {
   const { name, description, dueDate, subject } = req.body;
   try {
     const task = new Task({
-      name: name,
-      description: description,
-      dueDate: dueDate,
-      subject: subject,
-      createdAt: new Date(),
+      name: name || "Neue Aufgabe",
+      description: description || "",
+      dueDate: dueDate || new Date(),
+      subject: subject || "",
       done: false
     });
     homework.push(task);
     saveHomework(homework);
-    res.status(201).json(task);
+    res.status(201).json(task); // Wichtig für das Frontend!
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// PUT Aufgabe bearbeiten
-app.put("/api/homework/:id", (req, res) => {
-  const { id } = req.params;
-  const task = homework.find(t => t.id === id);
-  if (!task) return res.status(404).json({ error: "Task nicht gefunden" });
-
-  const { name, description, dueDate, subject } = req.body;
-  if (name) task.name = name;
-  if (description) task.description = description;
-  if (dueDate) task.dueDate = new Date(dueDate);
-  if (subject) task.subject = subject;
-
-  saveHomework(homework);
-  res.json(task);
-});
-
-// POST Aufgabe erledigen
-app.post("/api/homework/:id/complete", (req, res) => {
-  const { id } = req.params;
-  const task = homework.find(t => t.id === id);
-  if (!task) return res.status(404).json({ error: "Task nicht gefunden" });
-
-  task.complete();
-  saveHomework(homework);
-  res.json(task);
-});
-
-// DELETE Aufgabe
 app.delete("/api/homework/:id", (req, res) => {
-  const { id } = req.params;
-  const index = homework.findIndex(t => t.id === id);
-  if (index === -1) return res.status(404).json({ error: "Task nicht gefunden" });
-
-  const deleted = homework.splice(index, 1);
+  const index = homework.findIndex(t => t.id === req.params.id);
+  if (index === -1) return res.status(404).json({ error: "Nicht gefunden" });
+  homework.splice(index, 1);
   saveHomework(homework);
-  res.json(deleted[0]);
+  res.json({ success: true });
 });
 
-// GET Vocab
-app.get("/api/vocab", (req, res) => {
-  res.json();
-});
-
-// POST Vocab
+// --- VOCAB ---
 app.post('/api/vocab', (req, res) => {
   const { text } = req.body;
-
-  // Validierung: Existiert Text?
-  if (typeof text !== "string" || !text.trim()) {
-    return res.status(400).json({ error: "Invalid or empty text input." });
-  }
+  if (!text) return res.status(400).json({ error: "Input leer" });
 
   const lines = text.split(".");
+  const addedEntries = {};
 
-  const cleanedVocab = lines.reduce((acc, line, index) => {
-    const trimmed = line.trim();
+  try {
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+      
+      const parts = trimmed.split(",");
+      if (parts.length !== 2) throw new Error("Format: Deutsch,Andere.");
+      
+      const [de, other] = parts.map(s => s.trim());
+      if (de && other && !vocab[de]) {
+        vocab[de] = other;
+        addedEntries[de] = other;
+      }
+    });
 
-    // Leerzeilen ignorieren
-    if (!trimmed) return acc;
-
-    const parts = trimmed.split(",");
-
-    // Format prüfen
-    if (parts.length !== 2) {
-      throw new Error(`Invalid format in line ${index + 1}: "${line}"`);
-    }
-
-    const [german, other] = parts.map(s => s.trim());
-
-    if (!german || !other) {
-      throw new Error(`Missing value in line ${index + 1}`);
-    }
-
-    // Duplikat prüfen (überschreiben oder blockieren?)
-    if (vocab[german]) {
-      return;
-    }
-
-    acc[german] = other;
-    return acc;
-  }, {});
-
-  // Neue Einträge hinzufügen
-  Object.assign(vocab, cleanedVocab);
-
-  saveVocab(vocab);
-
-  res.status(201).json({
-    message: "Vocab added successfully",
-    added: Object.keys(cleanedVocab).length
-  });
+    saveVocab(vocab);
+    // Gibt alle erfolgreich hinzugefügten Paare zurück
+    res.status(201).json({ added: addedEntries }); 
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
+
+app.delete('/api/vocab/:id', (req, res) => {
+  const id = decodeURIComponent(req.params.id).trim();
+  if (!vocab[id]) return res.status(404).json({ error: "Nicht gefunden" });
+  
+  delete vocab[id];
+  saveVocab(vocab);
+  res.json({ success: true });
+});
+
 //#endregion
 
 async function updateStats() {
