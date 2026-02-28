@@ -178,14 +178,6 @@ td::before {
   margin-bottom: 0.3rem;
 }
 
-/* Homework Labels */
-td:nth-child(1)::before { content: "Name"; }
-td:nth-child(2)::before { content: "Beschreibung"; }
-td:nth-child(3)::before { content: "Fällig"; }
-td:nth-child(4)::before { content: "Fach"; }
-td:nth-child(5)::before { content: "Status"; }
-td:nth-child(6)::before { content: "Aktionen"; }
-
 /* =====================================================
    TABLE INPUTS (Homework)
 ===================================================== */
@@ -304,3 +296,15 @@ tr.overdue {
     width: 50%;
   }
 }
+
+/* TABELLEN LABELS */
+.vocab-table td:nth-child(1)::before { content: "Deutsch"; }
+.vocab-table td:nth-child(2)::before { content: "Andere"; }
+.vocab-table td:nth-child(3)::before { content: "Aktionen"; }
+
+.homework-table td:nth-child(1)::before { content: "Name"; }
+.homework-table td:nth-child(2)::before { content: "Beschreibung"; }
+.homework-table td:nth-child(3)::before { content: "Fällig"; }
+.homework-table td:nth-child(4)::before { content: "Fach"; }
+.homework-table td:nth-child(5)::before { content: "Status"; }
+.homework-table td:nth-child(6)::before { content: "Aktionen"; }

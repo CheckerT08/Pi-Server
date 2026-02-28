@@ -1,21 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Vocab</title>
+
   <link rel="stylesheet" href="/css/main.css">
   <script src="/js/vocab_add.js" type="module"></script>
-  <title>Add Vocab</title>
 </head>
+
 <body>
+
   <h1>Add Vocab</h1>
+
   <form id="addVocabForm" autocomplete="off">
-    <textarea type="text" name="vocab" placeholder="Deutsch,Andere" required></textarea>
+    <textarea
+      autocomplete="off"
+      name="vocab" 
+      placeholder="Deutsch,Andere" 
+      required></textarea>
+
     <button type="submit">Hinzufügen</button>
   </form>
   
   <h1>Alle Vocabs</h1>
-  <table>
+
+  <table class="vocab-table">
     <thead>
       <tr>
         <th>Deutsch</th>
@@ -23,15 +33,19 @@
         <th>Aktionen</th>
       </tr>
     </thead>
+
     <tbody>
-    <% Object.entries(vocab).forEach(([de, other]) => { %>
-      <tr data-id="<%= de %>">
-        <td><%= de %></td>
-        <td><%= other %></td>
-        <td><button class="deleteBtn">DELETE</button></td>
-      </tr>
-    <% }) %>
+      <% Object.entries(vocab).forEach(([de, other]) => { %>
+        <tr data-id="<%= de %>">
+          <td><%= de %></td>
+          <td><%= other %></td>
+          <td>
+            <button class="deleteBtn">DELETE</button>
+          </td>
+        </tr>
+      <% }) %>
     </tbody>
   </table>
+
 </body>
 </html>
