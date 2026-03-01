@@ -16,38 +16,51 @@ addForm.addEventListener('submit', async (event) => {
   const text = addForm.vocab.value;
   
   try {
-    // 1. Server-Antwort abwarten (enthält das 'added' Objekt mit allen neuen Paaren)
     const response = await apiCall('/api/vocab', 'POST', { text });
 
-    // 2. Über alle tatsächlich neu hinzugefügten Einträge loopen
-    Object.entries(response.added).forEach(([de, other], index) => {
-      
+    response.added.forEach(entry => {
+      const { name, other } = entry;
+
       const newRow = document.createElement('tr');
-      newRow.dataset.id = de;
-      
-      // Animation vorbereiten
+      newRow.dataset.id = name;
+
       newRow.style.opacity = "0";
       newRow.style.transform = "translateY(-20px)";
       newRow.style.transition = "all 0.4s ease";
-      
+
       newRow.innerHTML = `
-        <td>${de}</td>
+        <td>${name}</td>
         <td>${other}</td>
         <td><button class="deleteBtn">DELETE</button></td>
       `;
 
-      // Oben in die Tabelle einfügen
-      tbody.prepend(newRow);
+      // Finde die erste Zeile, die alphabetisch nach der neuen kommt
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      let inserted = false;
 
-      // Zeitlich versetzt einblenden für einen coolen Effekt
+      for (const row of rows) {
+        if (name.localeCompare(row.dataset.id, undefined, { sensitivity: 'base' }) < 0) {
+          tbody.insertBefore(newRow, row);
+          inserted = true;
+          break;
+        }
+      }
+
+      // Wenn keine größere Zeile gefunden → ans Ende
+      if (!inserted) {
+        tbody.appendChild(newRow);
+      }
+
+      // Nur für neue Zeilen Animation starten
       setTimeout(() => {
         newRow.style.opacity = "1";
         newRow.style.transform = "translateY(0)";
-      }, index * 100); 
+      }, 50);
     });
 
     addForm.reset();
     textarea.style.height = "auto";
+
   } catch (err) {
     alert(err.message);
   }
@@ -56,7 +69,7 @@ addForm.addEventListener('submit', async (event) => {
 // Löschen mit Animation (Event Delegation)
 tbody.addEventListener('click', async (e) => {
   if (!e.target.classList.contains('deleteBtn')) return;
-  
+  const button = e.target;
   const tr = e.target.closest('tr');
   const id = tr.dataset.id;
 
@@ -66,6 +79,10 @@ tbody.addEventListener('click', async (e) => {
       const errorData = await response.json();
       throw new Error(errorData.error);
     }
+    
+    // Button deaktivieren, sodass er nicht mehr klickbar ist
+    button.disabled = true;
+    button.textContent = "Deleted"; // optional: Text ändern
 
     tr.style.transition = "all 0.4s ease";
     tr.style.opacity = "0";

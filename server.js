@@ -59,6 +59,7 @@ app.get('/vocab', (req, res) => {
 });
 
 app.get('/vocab/add', (req, res) => {
+  console.log(vocab)
   res.render('vocab/add', {
     vocab: vocab
   });
@@ -140,7 +141,7 @@ app.post('/api/vocab', (req, res) => {
   if (!text) return res.status(400).json({ error: "Input leer" });
 
   const lines = text.split(".");
-  const addedEntries = {};
+  const addedEntries = [];
 
   try {
     lines.forEach(line => {
@@ -151,14 +152,25 @@ app.post('/api/vocab', (req, res) => {
       if (parts.length !== 2) throw new Error("Format: Deutsch,Andere.");
       
       const [de, other] = parts.map(s => s.trim());
-      if (de && other && !vocab[de]) {
-        vocab[de] = other;
-        addedEntries[de] = other;
+
+      if (!de || !other) return;
+
+      if (!vocab[de]) {
+        vocab[de] = {
+          other,
+          points: 0,
+          addedDate: new Date().toISOString()
+        };
+        addedEntries.push({
+          name: de,
+          other: vocab[de].other,
+          points: vocab[de].points,
+          addedDate: vocab[de].addedDate
+        });      
       }
     });
 
     saveVocab(vocab);
-    // Gibt alle erfolgreich hinzugefügten Paare zurück
     res.status(201).json({ added: addedEntries }); 
   } catch (err) {
     res.status(400).json({ error: err.message });

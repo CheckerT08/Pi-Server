@@ -35,10 +35,10 @@
     </thead>
 
     <tbody>
-      <% Object.entries(vocab).forEach(([de, other]) => { %>
+      <% Object.entries(vocab).forEach(([de, entry]) => { %>
         <tr data-id="<%= de %>">
           <td><%= de %></td>
-          <td><%= other %></td>
+          <td><%= entry.other %></td>
           <td>
             <button class="deleteBtn">DELETE</button>
           </td>
