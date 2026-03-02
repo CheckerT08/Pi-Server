@@ -75,6 +75,10 @@ app.get('/vocab/learn', (req, res) => {
 
 //#region APIs
 
+app.get("/api/homework", (req, res) => {
+  res.json(homework);
+});
+
 // --- HOMEWORK ---
 app.post("/api/homework", (req, res) => {
   const { name, description, dueDate, subject } = req.body;
