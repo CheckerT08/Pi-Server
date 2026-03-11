@@ -2,6 +2,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
 import si from 'systeminformation';
 import 'dotenv/config';
 import { PORT } from './config/env.js';
@@ -74,6 +75,18 @@ app.get('/vocab/learn', (req, res) => {
 //#endregion
 
 //#region APIs
+
+app.post('/api/code-start', (req, res) => {
+  console.log('Starte Code Prozess...');
+  runCommand('code-start', res);
+  res.statusCode(200);
+});
+
+app.post('/api/code-stop', (req, res) => {
+  console.log('Stoppe Code Prozess...');
+  runCommand('code-stop', res);
+  res.statusCode(200);
+});
 
 app.get("/api/homework", (req, res) => {
   res.json(homework);
@@ -181,6 +194,14 @@ app.post('/api/vocab', (req, res) => {
   }
 });
 
+app.get('/api/vocabrandom', (req, res) => {
+  const keys = Object.keys(vocab);
+  const randomIndex = Math.floor(Math.random() * keys.length);
+  const randomKey = keys[randomIndex];
+  const randomItem = vocab[randomKey];
+  res.json(randomItem).statusCode(200);
+});
+
 app.delete('/api/vocab/:id', (req, res) => {
   const id = decodeURIComponent(req.params.id).trim();
   if (!vocab[id]) return res.status(404).json({ error: "Nicht gefunden" });
@@ -191,6 +212,24 @@ app.delete('/api/vocab/:id', (req, res) => {
 });
 
 //#endregion
+
+//#region Hilfsfunktionen
+
+// Hilfsfunktion zur Ausführung der Befehle
+const runCommand = (cmd, res) => {
+    // 'shell: true' ist wichtig, damit Aliase/Shell-Logik theoretisch greifen
+    // Oft ist es sicherer, den direkten Pfad zum Skript zu nutzen
+    exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Fehler: ${error.message}`);
+            return res.status(500).json({ error: error.message });
+        }
+        if (stderr) {
+            console.warn(`Stderr: ${stderr}`);
+        }
+        res.json({ output: stdout || 'Befehl erfolgreich ausgeführt' });
+    });
+};
 
 async function updateStats() {
   try {
@@ -210,6 +249,8 @@ async function updateStats() {
     console.error("Fehler beim Abrufen der Stats:", e);
   }
 }
+
+//#endregion
 
 // Server starten
 app.listen(PORT, async () => {
