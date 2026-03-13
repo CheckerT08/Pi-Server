@@ -60,7 +60,6 @@ app.get('/vocab', (req, res) => {
 });
 
 app.get('/vocab/add', (req, res) => {
-  console.log(vocab)
   res.render('vocab/add', {
     vocab: vocab
   });
@@ -76,16 +75,16 @@ app.get('/vocab/learn', (req, res) => {
 
 //#region APIs
 
-app.post('/api/code-start', (req, res) => {
+app.get('/api/code-start', (req, res) => {
   console.log('Starte Code Prozess...');
-  runCommand('code-start', res);
-  res.statusCode(200);
+  runCommand('systemctl --user start code-server', res);
+  res.status(200);
 });
 
-app.post('/api/code-stop', (req, res) => {
+app.get('/api/code-stop', (req, res) => {
   console.log('Stoppe Code Prozess...');
-  runCommand('code-stop', res);
-  res.statusCode(200);
+  runCommand('systemctl --user stop code-server', res);
+  res.status(200);
 });
 
 app.get("/api/homework", (req, res) => {
