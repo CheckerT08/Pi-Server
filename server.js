@@ -66,11 +66,15 @@ app.get('/vocab/add', (req, res) => {
 });
 
 app.get('/vocab/learn', (req, res) => {
-  res.render('vocab/learn', {
+  const keys = Object.keys(vocab);
+  const randomKey = keys[Math.floor(Math.random() * keys.length)];
+  const { other } = vocab[randomKey];
 
+  res.render('vocab/learn', {
+    word: randomKey,
+    solution: other
   });
 });
-
 //#endregion
 
 //#region APIs
@@ -191,14 +195,6 @@ app.post('/api/vocab', (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-});
-
-app.get('/api/vocabrandom', (req, res) => {
-  const keys = Object.keys(vocab);
-  const randomIndex = Math.floor(Math.random() * keys.length);
-  const randomKey = keys[randomIndex];
-  const randomItem = vocab[randomKey];
-  res.json(randomItem).statusCode(200);
 });
 
 app.delete('/api/vocab/:id', (req, res) => {

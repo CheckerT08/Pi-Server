@@ -1,12 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/css/main.css">
   <title>Learn Vocab</title>
+
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/vocab_learn.js" type="module"></script>
+
+  <script>let solution = "<%= solution %>";</script>
 </head>
+
 <body>
-  
+  <h1>Learn Vocab</h1>
+
+  <h3>Übersetz: <%=locals.word%></h3>
+  <form id="learnForm" autocomplete="off">
+    <input autofocus type="text" id="learnInput">
+    <button id="submitButton" type="submit">Überprüfen</button>
+  </form>
+
+  <h3 id="solutionText"></h3>
 </body>
-</html>
