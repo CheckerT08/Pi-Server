@@ -35,7 +35,13 @@
     </thead>
 
     <tbody>
-      <% Object.entries(vocab).forEach(([de, entry]) => { %>
+      <% 
+        // Wir sortieren das Array aus [Key, Value] Paaren alphabetisch nach dem Key (Index 0)
+        const sortedVocab = Object.entries(vocab).sort((a, b) => {
+        return a[0].localeCompare(b[0], undefined, { sensitivity: 'base' });
+        });
+
+        sortedVocab.forEach(([de, entry]) => { %>
         <tr data-id="<%= de %>">
           <td><%= de %></td>
           <td><%= entry.other %></td>
