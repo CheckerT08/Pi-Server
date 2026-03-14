@@ -14,7 +14,7 @@ textarea.addEventListener("input", () => {
 addForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = addForm.vocab.value;
-  
+
   try {
     const response = await apiCall('/api/vocab', 'POST', { text });
 
@@ -73,13 +73,15 @@ tbody.addEventListener('click', async (e) => {
   const tr = e.target.closest('tr');
   const id = tr.dataset.id;
 
+  if (!confirm('Wirklich löschen?')) return;
+
   try {
     const response = await fetch(`/api/vocab/${encodeURIComponent(id)}`, { method: 'DELETE' });
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error);
     }
-    
+
     // Button deaktivieren, sodass er nicht mehr klickbar ist
     button.disabled = true;
     button.textContent = "Deleted"; // optional: Text ändern
