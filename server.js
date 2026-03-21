@@ -66,9 +66,7 @@ app.get('/vocab/add', (req, res) => {
 });
 
 app.get('/vocab/learn', (req, res) => {
-  const keys = Object.keys(vocab);
-  const randomKey = keys[Math.floor(Math.random() * keys.length)];
-  const { other } = vocab[randomKey];
+  let {randomKey, other} = getRandomVocab();
 
   res.render('vocab/learn', {
     word: randomKey,
@@ -91,11 +89,11 @@ app.get('/api/code-stop', (req, res) => {
   res.status(200);
 });
 
+//#region Homework
 app.get("/api/homework", (req, res) => {
   res.json(homework);
 });
 
-// --- HOMEWORK ---
 app.post("/api/homework", (req, res) => {
   const { name, description, dueDate, subject } = req.body;
   try {
@@ -116,7 +114,6 @@ app.post("/api/homework", (req, res) => {
   }
 });
 
-// PUT Aufgabe bearbeiten
 app.put("/api/homework/:id", (req, res) => {
   const { id } = req.params;
   const task = homework.find(t => t.id === id);
@@ -134,7 +131,6 @@ app.put("/api/homework/:id", (req, res) => {
   res.json(task);
 });
 
-// POST Aufgabe erledigen
 app.post("/api/homework/:id/complete", (req, res) => {
   const { id } = req.params;
   const task = homework.find(t => t.id === id);
@@ -154,8 +150,9 @@ app.delete("/api/homework/:id", (req, res) => {
   saveHomework(homework);
   res.json({ success: true });
 });
+//#endregion
 
-// --- VOCAB ---
+//#region Vocab
 app.post('/api/vocab', (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: "Input leer" });
@@ -195,6 +192,33 @@ app.post('/api/vocab', (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+});
+
+app.put('/api/vocab', (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ error: 'No body provided' });
+  }
+
+  const { german, correct } = req.body;
+
+  if (!german) {
+    return res.status(400).json({ error: 'Missing german field' });
+  }
+
+  if (!vocab[german]) {
+    return res.status(404).json({ error: 'Word not found' });
+  }
+
+  if (correct) {
+    vocab[german].points++;
+    console.log('++');
+  } else {
+    vocab[german].points = 222222;
+    console.log('=0');
+  }
+
+  saveVocab(vocab);
+  res.status(200).json({ success: true });
 });
 
 app.delete('/api/vocab/:id', (req, res) => {
@@ -243,6 +267,13 @@ async function updateStats() {
   } catch (e) {
     console.error("Fehler beim Abrufen der Stats:", e);
   }
+}
+
+function getRandomVocab() {
+  const keys = Object.keys(vocab);
+  const randomKey = keys[Math.floor(Math.random() * keys.length)];
+  const { other } = vocab[randomKey];
+  return { randomKey, other }
 }
 
 //#endregion

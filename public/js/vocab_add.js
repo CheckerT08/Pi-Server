@@ -31,6 +31,7 @@ addForm.addEventListener('submit', async (event) => {
       newRow.innerHTML = `
         <td>${name}</td>
         <td>${other}</td>
+        <td>0</td>
         <td><button class="deleteBtn">DELETE</button></td>
       `;
 

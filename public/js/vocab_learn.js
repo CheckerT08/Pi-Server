@@ -5,35 +5,41 @@ const input = document.querySelector("input");
 const solutionText = document.getElementById('solutionText');
 const button = document.getElementById('submitButton');
 
-// Hinzufügen mit Animation
+let isFinished = false; // Status-Variable
+console.log(`Word: ${word}, Sol: ${solution}`)
+
 learnForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+  
+  // Wenn wir schon fertig sind, lade einfach neu
+  if (isFinished) {
+    location.reload();
+    return; // Beendet die Funktion hier
+  }
+  
   const text = input.value.toLowerCase().trim();
-  solution = solution.toLowerCase();
-  console.log('check...')
+  const sol = solution.toLowerCase();
 
-  // solution durch ejs übergeben
-  console.log(`text: ${text}, other: ${solution}`)
-  if (text === solution) {
+  if (text === sol) {
     win();
   } else {
     lose();
   }
-  button.textContent = 'Erneut...'
-  button.onclick = () => {
-    location.reload();
-  }
-  console.log('ende');
+
+  // Jetzt in den "Reload-Modus" wechseln
+  button.textContent = 'Erneut...';
+  isFinished = true;
 });
+
 
 function win() {
   solutionText.textContent = 'Richtig!';
+  apiCall('/api/vocab', 'PUT', { german: word, correct: true });
   button.style.backgroundColor = 'green';
-  console.log('ja');
 }
 
 function lose() {
   solutionText.textContent = `Falsch! Richtig wäre: "${solution}"`;
+  apiCall('/api/vocab', 'PUT', { german: word, correct: false });
   button.style.backgroundColor = 'red';
-  console.log('ne');
 }

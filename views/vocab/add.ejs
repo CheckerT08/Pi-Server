@@ -30,6 +30,7 @@
       <tr>
         <th>Deutsch</th>
         <th>Andere</th>
+        <th>Punkte</th>
         <th>Aktionen</th>
       </tr>
     </thead>
@@ -45,9 +46,8 @@
         <tr data-id="<%= de %>">
           <td><%= de %></td>
           <td><%= entry.other %></td>
-          <td>
-            <button class="deleteBtn">DELETE</button>
-          </td>
+          <td><%= entry.points %></td>
+          <td><button class="deleteBtn">DELETE</button></td>
         </tr>
       <% }) %>
     </tbody>
