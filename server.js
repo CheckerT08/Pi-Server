@@ -78,13 +78,11 @@ app.get('/vocab/learn', (req, res) => {
 //#region APIs
 
 app.get('/api/code-start', (req, res) => {
-  console.log('Starte Code Prozess...');
   runCommand('systemctl --user start code-server', res);
   res.status(200);
 });
 
 app.get('/api/code-stop', (req, res) => {
-  console.log('Stoppe Code Prozess...');
   runCommand('systemctl --user stop code-server', res);
   res.status(200);
 });
@@ -211,10 +209,8 @@ app.put('/api/vocab', (req, res) => {
 
   if (correct) {
     vocab[german].points++;
-    console.log('++');
   } else {
     vocab[german].points = 222222;
-    console.log('=0');
   }
 
   saveVocab(vocab);
