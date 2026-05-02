@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import si from 'systeminformation';
 import 'dotenv/config';
-import { PORT } from './config/env.js';
+import { PORT, MUSIC_BOX_IP } from './config/env.js';
 import { homework, Task, saveHomework } from './homework_manager.js';
 import { vocab, saveVocab } from './vocabulary_manager.js'
 
@@ -31,12 +31,6 @@ app.get('/', (req, res) => {
   res.render('index', {
   });
 });
-
-app.get('/google', (req, res) => {
-  res.render('google', {
-
-  });
-})
 
 app.get('/stats', (req, res) => {
   res.render('stats', {
@@ -72,6 +66,30 @@ app.get('/vocab/learn', (req, res) => {
     word: randomKey,
     solution: other
   });
+});
+//#endregion
+
+//#region MUSIC_BOX_CONTROL
+const boxRequest = async (path, res) => {
+  try {
+    const response = await fetch(`http://${MUSIC_BOX_IP}/YamahaExtendedControl/v1/main/${path}`);
+    if (response.ok) {
+      res.status(200).json({ success: true });
+    } else {
+      res.status(response.status).json({ error: 'Box antwortet mit Fehler' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Box nicht erreichbar' });
+  }
+};
+
+app.get('/api/box/power/:state', (req, res) => {
+  boxRequest(`setPower?power=${req.params.state}`, res);
+});
+
+app.get('/api/box/volume/:change', (req, res) => {
+  const linkVar = req.params.change === 'up' ? 'up&step=2' : 'down&step=2';
+  boxRequest(`setVolume?volume=${linkVar}`, res);
 });
 //#endregion
 
