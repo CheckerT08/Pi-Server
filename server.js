@@ -91,6 +91,11 @@ app.get('/api/box/volume/:change', (req, res) => {
   const linkVar = req.params.change === 'up' ? 'up&step=2' : 'down&step=2';
   boxRequest(`setVolume?volume=${linkVar}`, res);
 });
+
+app.get('/api/box/input/:value', (req, res) => {
+  const linkVar = req.params.value;
+  boxRequest(`setInput?input=${linkVar}`, res);
+});
 //#endregion
 
 //#region APIs
