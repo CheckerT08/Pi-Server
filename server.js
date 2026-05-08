@@ -1,11 +1,11 @@
 //#region Imports, Express, __dirname
-import express from 'express';
+import express, { response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import si from 'systeminformation';
 import 'dotenv/config';
-import { PORT, MUSIC_BOX_IP } from './config/env.js';
+import { PORT, MUSIC_BOX_IP, MISTRAL_API_KEY, LOCATION } from './config/env.js';
 import { homework, Task, saveHomework } from './homework_manager.js';
 import { vocab, saveVocab } from './vocabulary_manager.js'
 
@@ -25,6 +25,187 @@ app.set('views', path.join(__dirname, 'views'));
 //#endregion
 
 let stats = { cpu: '...', ram: '...', temp: '...', diskText: '...' };
+
+const commands = {
+  getSystemStatus: async () => {
+    return `Temperatur ${stats.temp.replace('.', ',')}, Arbeitsspeicher ${stats.ram.replace('/', ' von ')}`;
+  },
+
+  reboot: async () => {
+    runCommand('sudo reboot now');
+    return 'Starte jetzt neu';
+  },
+
+  fullShutdown: async () => {
+    runCommand('ssh laptop "/home/torbinho/.shutdown"');
+    commands.boxOff();
+    return 'Alles aus. Bis bald';
+  },
+
+  boxOn: async () => {
+    boxRequest('main/setPower?power=on');
+    setTimeout(() => boxRequest(`main/setInput?input=bluetooth`), 5000);
+    return 'Box eingeschaltet';
+  },
+
+  boxOff: async () => {
+    boxRequest(`main/setPower?power=standby`);
+    return 'Box ausgeschaltet';
+  },
+
+  boxLauter: async (addVolume) => {
+    const change = parseInt(addVolume) || 3;
+
+    const currentVolume = await boxRequest(`main/getStatus`).volume;
+    await boxRequest(`main/setVolume?volume=${currentVolume + change}`);
+    return 'Box lauter gemacht';
+  },
+
+  boxLeiser: async (addVolume) => {
+    const change = parseInt(addVolume) || 3;
+
+    const currentVolume = await boxRequest(`main/getStatus`).volume;
+    await boxRequest(`main/setVolume?volume=${currentVolume - change}`);
+    return 'Box leiser gemacht';
+  },
+
+  boxSetVolume: async (volume) => {
+    if (volume && volume != 0) {
+      await boxRequest(`main/setVolume?volume=${volume}`);
+      return `Lautstärke auf ${volume} geändert`;
+    } else {
+      return 'Keine Lautstärke genannt. Nichts verändert.';
+    }
+  },
+
+  boxSkipSong: async () => {
+    await boxRequest(`netusb/setPlayback?playback=next`);
+    return 'Song übersprungen';
+  },
+
+  boxPrevSong: async () => {
+    await boxRequest(`netusb/setPlayback?playback=previous`);
+    return 'Song zurück';
+  },
+
+  boxPause: async () => {
+    await boxRequest(`netusb/setPlayback?playback=pause`);
+    return 'Musik Pausiert';
+  },
+
+  boxPlay: async () => {
+    await boxRequest(`netusb/setPlayback?playback=play`);
+    return 'Spiele weiter';
+  },
+
+  boxGetSongData: async () => {
+    const res = await boxRequest(`netusb/getPlayInfo`);
+    if (!res) return 'Nichts gefunden';
+
+    const artist = res.artist;
+    const title = res.track;
+
+    return `Gerade spielt ${title} von ${artist}`;
+  },
+
+  getWeather: async (city) => {
+    if (!city || typeof city != 'string' || city === 'null') city = LOCATION;
+
+    try {
+      const response = await fetch(`https://wttr.in/${city}?format=3`);
+      const text = await response.text();
+      return text.trim().replace('°', ' °');
+    } catch (err) {
+      return "Wetterdaten derzeit nicht verfügbar.";
+    }
+  },
+
+  askAI: async (question) => {
+    try {
+      const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${MISTRAL_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "mistral-medium-latest",
+          messages: [
+            { role: "system", content: "Du bist Jarvis. Antworte kurz, präzise und hilfsbereit. Du steuerst ein Smart Home." },
+            { role: "user", content: question }
+          ]
+        })
+      });
+
+      const data = await res.json();
+      if (data.choices && data.choices.length > 0) {
+        return data.choices[0].message.content;
+      } else {
+        return "Die Zentrale ist gerade am streiken";
+      }
+
+    } catch (e) {
+      return "Die Zentrale ist gerade nicht erreichbar";
+    }
+  },
+}  
+const mappings = [
+  // --- System & Status ---
+  { keywords: ['status'], action: 'getSystemStatus' },
+  { keywords: ['wie', 'geht'], action: 'getSystemStatus' },
+  { keywords: ['temperatur'], action: 'getSystemStatus' },
+  
+  { keywords: ['starte', 'neu'], action: 'reboot' },
+  { keywords: ['reboot'], action: 'reboot' },
+  
+  { keywords: ['feierabend'], action: 'fullShutdown' },
+  { keywords: ['alles', 'aus'], action: 'fullShutdown' },
+  { keywords: ['schlafenszeit'], action: 'fullShutdown' },
+
+  // --- Box Power & Input ---
+  { keywords: ['box', 'an'], action: 'boxOn' },
+  { keywords: ['musik', 'an'], action: 'boxOn' },
+  { keywords: ['lautsprecher', 'an'], action: 'boxOn' },
+  
+  { keywords: ['box', 'aus'], action: 'boxOff' },
+  { keywords: ['musik', 'aus'], action: 'boxOff' },
+  { keywords: ['lautsprecher', 'aus'], action: 'boxOff' },
+
+  // --- Lautstärke ---
+  { keywords: ['box', 'lauter'], action: 'boxLauter', param: /(\d+)/ },
+  { keywords: ['musik', 'lauter'], action: 'boxLauter', param: /(\d+)/ },
+  
+  { keywords: ['box', 'leiser'], action: 'boxLeiser', param: /(\d+)/ },
+  { keywords: ['musik', 'leiser'], action: 'boxLeiser', param: /(\d+)/ },
+  
+  { keywords: ['lautstärke'], action: 'boxSetVolume', param: /(\d+)/ },
+  { keywords: ['setze', 'vol'], action: 'boxSetVolume', param: /(\d+)/ },
+
+  // --- Playback Steuerung ---
+  { keywords: ['pause'], action: 'boxPause' },
+  { keywords: ['stopp'], action: 'boxPause' },
+  { keywords: ['anhalt'], action: 'boxPause' },
+  
+  { keywords: ['play'], action: 'boxPlay' },
+  { keywords: ['spiel', 'weiter'], action: 'boxPlay' },
+
+  { keywords: ['nächster'], action: 'boxSkipSong' },
+  { keywords: ['skip'], action: 'boxSkipSong' },
+  { keywords: ['weiter'], action: 'boxSkipSong' },
+  
+  { keywords: ['zurück'], action: 'boxPrevSong' },
+  { keywords: ['vorheriger'], action: 'boxPrevSong' },
+
+  // --- Informationen ---
+  { keywords: ['welcher', 'song'], action: 'boxGetSongData' },
+  { keywords: ['wie', 'song'], action: 'boxGetSongData' },
+  { keywords: ['was', 'spielt'], action: 'boxGetSongData' },
+  { keywords: ['interpret'], action: 'boxGetSongData' },
+  
+  { keywords: ['wetter'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
+  { keywords: ['wie', 'warm'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
+  { keywords: ['regen'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
+]
 
 //#region Web-Pages
 app.get('/', (req, res) => {
@@ -69,32 +250,57 @@ app.get('/vocab/learn', (req, res) => {
 });
 //#endregion
 
-//#region MUSIC_BOX_CONTROL
-const boxRequest = async (path, res) => {
+//#region SMART_HOME
+const boxRequest = async (path) => {
   try {
-    const response = await fetch(`http://${MUSIC_BOX_IP}/YamahaExtendedControl/v1/main/${path}`);
-    if (response.ok) {
-      res.status(200).json({ success: true });
-    } else {
-      res.status(response.status).json({ error: 'Box antwortet mit Fehler' });
-    }
+    const response = await fetch(`http://${MUSIC_BOX_IP}/YamahaExtendedControl/v1/${path}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    return await response.json(); 
   } catch (err) {
-    res.status(500).json({ error: 'Box nicht erreichbar' });
+    console.error("Jarvis Music-Modul Fehler:", err.message);
+    return { response_code: -1, error: err.message };
   }
 };
 
 app.get('/api/box/power/:state', (req, res) => {
-  boxRequest(`setPower?power=${req.params.state}`, res);
+  boxRequest(`main/setPower?power=${req.params.state}`);
+  res.status(200).json('OK');
 });
 
 app.get('/api/box/volume/:change', (req, res) => {
   const linkVar = req.params.change === 'up' ? 'up&step=2' : 'down&step=2';
-  boxRequest(`setVolume?volume=${linkVar}`, res);
+  boxRequest(`main/setVolume?volume=${linkVar}`);
+  res.status(200).json('OK');
 });
 
 app.get('/api/box/input/:value', (req, res) => {
   const linkVar = req.params.value;
-  boxRequest(`setInput?input=${linkVar}`, res);
+  boxRequest(`main/setInput?input=${linkVar}`);
+  res.status(200).json('OK');
+});
+
+app.post('/api/jarvis/', async (req, res) => {
+  if (!req.body) {
+    res.status(400).json('Body ist leer');
+    return;
+  }
+
+  let { body } = req.body;
+  body = body.split(',')[0]
+
+  if (Array.isArray(body)) {
+    res.status(400).json('Das Ergebnis kam als array an');
+    return;
+  }  
+
+  let input = body.replace(/[.,!?]/gi, '');
+  
+  const result = await handleSpeech(input);
+
+  console.log(`Result: ${result}, input: ${input}`)
+  
+  res.status(200).json(result)
 });
 //#endregion
 
@@ -293,6 +499,27 @@ function getRandomVocab() {
   const randomKey = keys[Math.floor(Math.random() * keys.length)];
   const { other } = vocab[randomKey];
   return { randomKey, other }
+}
+
+async function handleSpeech(input) {
+  const text = input.toLowerCase();
+
+  const match = mappings.find(m => m.keywords.every(kw => text.includes(kw)));
+
+  if (match) {
+    let param = null;
+
+    if (match.param) {
+      const result = text.match(match.param); // filter for params with regex from match param field
+      if (result) param = result[0];
+    }
+    let res = 'Okay'
+    res = await commands[match.action](param);
+    return res || 'Okay';
+  }
+  
+  console.log('AI fallback');
+  return await commands.askAI(input);
 }
 
 //#endregion
