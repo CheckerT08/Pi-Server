@@ -104,6 +104,7 @@ const commands = {
 
     const artist = res.artist;
     const title = res.track;
+    if (!artist || !title) return 'Nichts gefunden!'
 
     return `Gerade spielt ${title} von ${artist}`;
   },
@@ -205,6 +206,8 @@ const mappings = [
   { keywords: ['wetter'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
   { keywords: ['wie', 'warm'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
   { keywords: ['regen'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
+
+  { keywords: ['mistral'], action: 'askAi', param: /(?<=mistral\s).*/i},
 ]
 
 //#region Web-Pages
@@ -461,17 +464,15 @@ app.delete('/api/vocab/:id', (req, res) => {
 
 // Hilfsfunktion zur Ausführung der Befehle
 const runCommand = (cmd, res) => {
-    // 'shell: true' ist wichtig, damit Aliase/Shell-Logik theoretisch greifen
-    // Oft ist es sicherer, den direkten Pfad zum Skript zu nutzen
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
             console.error(`Fehler: ${error.message}`);
-            return res.status(500).json({ error: error.message });
+            return;
         }
         if (stderr) {
             console.warn(`Stderr: ${stderr}`);
         }
-        res.json({ output: stdout || 'Befehl erfolgreich ausgeführt' });
+        return stdout;
     });
 };
 
