@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import si from 'systeminformation';
 import 'dotenv/config';
-import { PORT, MUSIC_BOX_IP, MISTRAL_API_KEY, LOCATION } from './config/env.js';
+import fs from 'fs';
+import { PORT, MUSIC_BOX_IP, MISTRAL_API_KEY, LATITUDE, LONGITUDE } from './config/env.js';
 import { homework, Task, saveHomework } from './homework_manager.js';
 import { vocab, saveVocab } from './vocabulary_manager.js'
 
@@ -26,6 +27,17 @@ app.set('views', path.join(__dirname, 'views'));
 
 let stats = { cpu: '...', ram: '...', temp: '...', diskText: '...' };
 
+function getAIInstructions() {
+  try {
+    const filePath = path.join(__dirname, 'ai_instructions.txt');
+    return fs.readFileSync(filePath, 'utf8').trim();
+  } catch (err) {
+    console.error("Konnte instructions.txt nicht laden, nutze Standard-Prompt.");
+    console.error(err.message);
+    return "Du bist ein hilfreicher Assistent.";
+  }
+}
+
 const commands = {
   getSystemStatus: async () => {
     return `Temperatur ${stats.temp.replace('.', ',')}, Arbeitsspeicher ${stats.ram.replace('/', ' von ')}`;
@@ -37,7 +49,7 @@ const commands = {
   },
 
   fullShutdown: async () => {
-    runCommand('ssh laptop "/home/torbinho/.shutdown"');
+    runCommand('ssh -o ConnectTimeout=5 laptop "/home/torbinho/.shutdown"');
     commands.boxOff();
     return 'Alles aus. Bis bald';
   },
@@ -109,19 +121,60 @@ const commands = {
     return `Gerade spielt ${title} von ${artist}`;
   },
 
-  getWeather: async (city) => {
-    if (!city || typeof city != 'string' || city === 'null') city = LOCATION;
+  getWeather: async (hoursFromNow) => {
+    const offset = parseInt(hoursFromNow) || 0;
+
+    const weatherMaster = {
+        0:  "einem wolkenlosen Himmel",
+        1:  "fast keinen Wolken",
+        2:  "leichter Bewölkung",
+        3:  "bedecktem Himmel",
+        45: "etwas Nebel",
+        48: "viel Nebel",
+        51: "leichtem Nieselregen",
+        53: "Nieselregen",
+        55: "starkem Nieselregen",
+        61: "leichtem Regen",
+        63: "Regen",
+        65: "starkem Regen",
+        66: "Schneeregen",
+        67: "starkem Schneeregen",
+        71: "leichtem Schneefall",
+        73: "Schneefall",
+        75: "starkem Schneefall",
+        95: "einem Gewitter"
+    };
 
     try {
-      const response = await fetch(`https://wttr.in/${city}?format=3`);
-      const text = await response.text();
-      return text.trim().replace('°', ' °');
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&hourly=temperature_2m,weathercode&forecast_days=2`);
+        const data = await response.json();
+
+        const now = new Date();
+        const currentHour = now.getHours();
+        const targetHour = currentHour + offset;
+
+        if (targetHour >= data.hourly.temperature_2m.length) {
+            return "Das ist zu weit in der Zukunft";
+        }
+
+        const temp = data.hourly.temperature_2m[targetHour];
+        const code = data.hourly.weathercode[targetHour];
+
+        const condition = weatherMaster[code] || "unbekannten Wetterbedingungen";
+        
+        if (offset === 0) {
+            return `Es sind aktuell ${temp} Grad bei ${condition}.`;
+        } else {
+            return `In ${offset} Stunden wird es hier etwa ${temp} Grad warm sein bei ${condition}.`;
+        }
     } catch (err) {
-      return "Wetterdaten derzeit nicht verfügbar.";
+        return "Die Wetterstation antwortet gerade nicht.";
     }
   },
 
   askAI: async (question) => {
+    const ai_instructions = getAIInstructions();
+
     try {
       const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
         method: 'POST',
@@ -132,7 +185,7 @@ const commands = {
         body: JSON.stringify({
           model: "mistral-medium-latest",
           messages: [
-            { role: "system", content: "Du bist Jarvis. Antworte kurz, präzise und hilfsbereit. Du steuerst ein Smart Home." },
+            { role: "system", content: ai_instructions },
             { role: "user", content: question }
           ]
         })
@@ -203,9 +256,9 @@ const mappings = [
   { keywords: ['was', 'spielt'], action: 'boxGetSongData' },
   { keywords: ['interpret'], action: 'boxGetSongData' },
   
-  { keywords: ['wetter'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
-  { keywords: ['wie', 'warm'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
-  { keywords: ['regen'], action: 'getWeather', param: /(?<=in\s)(\w+)/i },
+  { keywords: ['wetter'], action: 'getWeather', param: /(\d+)/ },
+  { keywords: ['wie', 'warm'], action: 'getWeather', param: /(\d+)/ },
+  { keywords: ['regen'], action: 'getWeather', param: /(\d+)/ },
 
   { keywords: ['mistral'], action: 'askAi', param: /(?<=mistral\s).*/i},
 ]
