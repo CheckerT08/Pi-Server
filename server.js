@@ -57,11 +57,17 @@ const commands = {
   boxOn: async () => {
     boxRequest('main/setPower?power=on');
     setTimeout(() => boxRequest(`main/setInput?input=bluetooth`), 5000);
+    fetch('https://ntfy.sh/BluetoothOn_2147483647', {
+      method: 'POST'
+    });
     return 'Box eingeschaltet';
   },
 
   boxOff: async () => {
     boxRequest(`main/setPower?power=standby`);
+    fetch('https://ntfy.sh/BluetoothOff_2147483647', {
+      method: 'POST'
+    });
     return 'Box ausgeschaltet';
   },
 
@@ -253,7 +259,7 @@ const mappings = [
   // --- Informationen ---
   { keywords: ['welcher', 'song'], action: 'boxGetSongData' },
   { keywords: ['wie', 'song'], action: 'boxGetSongData' },
-  { keywords: ['was', 'spielt'], action: 'boxGetSongData' },
+  { keywords: ['aktuell', 'song'], action: 'boxGetSongData' },
   { keywords: ['interpret'], action: 'boxGetSongData' },
   
   { keywords: ['wetter'], action: 'getWeather', param: /(\d+)/ },
@@ -343,6 +349,7 @@ app.post('/api/jarvis/', async (req, res) => {
   }
 
   let { body } = req.body;
+  if (!body) return 'Du hast nichts gesagt, oder?';
   body = body.split(',')[0]
 
   if (Array.isArray(body)) {
