@@ -1,15 +1,27 @@
+import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import crypto from "crypto";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const HOMEWORK_PATH = path.join(__dirname, "data", "homework.json")
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const HOMEWORK_PATH = path.join(__dirname, "data", "homework.json");
 
 export let homework = []
 
 export class Task {
+  /**
+   * @param {Object} [options]
+   * @param {string} [options.id]
+   * @param {string} [options.name]
+   * @param {string} [options.description]
+   * @param {Date|string} [options.dueDate]
+   * @param {string} [options.subject]
+   * @param {Date|string} [options.createdAt]
+   * @param {boolean} [options.done]
+   * @param {Date|string} [options.completedAt]
+   */
   constructor({ id, name, description, dueDate, subject, createdAt, done, completedAt } = {}) {
     if (!name) throw new Error("Task braucht einen Namen!");
 
