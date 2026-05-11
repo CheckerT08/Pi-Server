@@ -39,7 +39,7 @@ export const mappings = [
   { keywords: ['spiel', 'weiter'], action: 'boxPlay' },
 
   { keywords: ['nächster'], action: 'boxSkipSong' },
-  { keywords: ['skip'], action: 'boxSkipSong' },
+  { keywords: ['überspring', 'song'], action: 'boxSkipSong' },
   { keywords: ['weiter'], action: 'boxSkipSong' },
   
   { keywords: ['zurück'], action: 'boxPrevSong' },

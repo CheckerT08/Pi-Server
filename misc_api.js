@@ -4,12 +4,14 @@ import { homework, saveHomework, Task } from './homework_manager.js';
 export function setupMiscApi(app) {
   app.get('/api/code-start', (req, res) => {
     runCommand('systemctl --user start code-server', res);
-    res.status(200);
+    console.log('Starte Code Server');
+    res.status(200).json('Code gestartet');
   });
 
   app.get('/api/code-stop', (req, res) => {
     runCommand('systemctl --user stop code-server', res);
-    res.status(200);
+    console.log('Stoppe Code Server');
+    res.status(200).json('Code gestoppt');
   });
 
   app.get("/api/homework", (req, res) => {
