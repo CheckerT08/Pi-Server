@@ -2,7 +2,6 @@ import { exec } from 'child_process';
 import { MUSIC_BOX_IP } from './config/env.js';
 import { commands } from './smart_home_commands.js';
 import { mappings } from './smart_home_mappings.js';
-import { vocab } from './vocabulary_manager.js';
 
 export const boxRequest = async (path) => {
   try {
@@ -48,11 +47,4 @@ export async function handleSpeech(input) {
   
   console.log('AI fallback');
   return await commands.askAI(input);
-}
-
-export function getRandomVocab() {
-  const keys = Object.keys(vocab);
-  const randomKey = keys[Math.floor(Math.random() * keys.length)];
-  const { other } = vocab[randomKey];
-  return { randomKey, other }
 }
