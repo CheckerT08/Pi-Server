@@ -19,26 +19,15 @@ export function setupSmartHomeApi(app) {
   });
   
   app.post('/api/jarvis/', async (req, res) => {
-    if (!req.body) {
-      res.status(400).json('Body ist leer');
-      return;
-    }
-  
+    if (!req.body) return res.status(400).json('Body ist leer');
     let { body } = req.body;
-    if (!body) return 'Du hast nichts gesagt, oder?';
-    body = body.split(',')[0]
-  
-    if (Array.isArray(body)) {
-      res.status(400).json('Das Ergebnis kam als array an');
-      return;
-    }  
+    if (!body) return res.status(200).json('Du hast nichts gesagt, oder?');
+    body = body.split(',')[0];
   
     let input = body.replace(/[.,!?]/gi, '');
-    
     const result = await handleSpeech(input);
-  
-    console.log(`Result: ${result}, input: ${input}`)
-    
-    res.status(200).json(result)
+
+    console.log(`Result: ${result}, input: ${input}`);
+    res.status(200).json(result);
   });
 }

@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { LATITUDE, LONGITUDE, MISTRAL_API_KEY } from './config/env.js';
+import { fileURLToPath } from 'url';
+import { MISTRAL_API_KEY, LOCATION } from './config/env.js';
 import { boxRequest, runCommand } from './helper_funcs.js';
 import { stats } from './stats.js';
-import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +34,8 @@ export const commands = {
     commands.boxOff();
     return 'Alles aus. Bis bald';
   },
+
+
 
   boxOn: async () => {
     boxRequest('main/setPower?power=on');
@@ -108,54 +110,66 @@ export const commands = {
     return `Gerade spielt ${title} von ${artist}`;
   },
 
-  getWeather: async (hoursFromNow) => {
-    const offset = parseInt(hoursFromNow) || 0;
+
+
+  getWeather: async (hoursFromNow, locationInput) => {
+    console.log(`weather: ${hoursFromNow}, ${locationInput}`)
+    const offset = Math.max(0, parseInt(hoursFromNow) || 0);
+    const location = (locationInput || LOCATION).trim();
 
     const weatherMaster = {
-        0:  "einem wolkenlosen Himmel",
-        1:  "fast keinen Wolken",
-        2:  "leichter Bewölkung",
-        3:  "bedecktem Himmel",
-        45: "etwas Nebel",
-        48: "viel Nebel",
-        51: "leichtem Nieselregen",
-        53: "Nieselregen",
-        55: "starkem Nieselregen",
-        61: "leichtem Regen",
-        63: "Regen",
-        65: "starkem Regen",
-        66: "Schneeregen",
-        67: "starkem Schneeregen",
-        71: "leichtem Schneefall",
-        73: "Schneefall",
-        75: "starkem Schneefall",
-        95: "einem Gewitter"
+      0: "einem wolkenlosen Himmel",
+      1: "fast keinen Wolken",
+      2: "leichter Bewölkung",
+      3: "bedecktem Himmel",
+      45: "etwas Nebel",
+      48: "viel Nebel",
+      51: "leichtem Nieselregen",
+      53: "Nieselregen",
+      55: "starkem Nieselregen",
+      61: "leichtem Regen",
+      63: "Regen",
+      65: "starkem Regen",
+      66: "Schneeregen",
+      67: "starkem Schneeregen",
+      71: "leichtem Schneefall",
+      73: "Schneefall",
+      75: "starkem Schneefall",
+      95: "einem Gewitter"
     };
 
     try {
-        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&hourly=temperature_2m,weathercode&forecast_days=2`);
-        const data = await response.json();
+      const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=de&format=json`);
+      const geoData = await geoRes.json();
 
-        const now = new Date();
-        const currentHour = now.getHours();
-        const targetHour = currentHour + offset;
+      if (!geoData.results || geoData.results.length === 0) {
+        return `Ich konnte den Ort ${location} leider nicht finden.`;
+      }
 
-        if (targetHour >= data.hourly.temperature_2m.length) {
-            return "Das ist zu weit in der Zukunft";
-        }
+      const { latitude, longitude, name: realName } = geoData.results[0];
 
-        const temp = data.hourly.temperature_2m[targetHour];
-        const code = data.hourly.weathercode[targetHour];
+      const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weathercode&forecast_days=2&timezone=auto`);
+      const weatherData = await weatherRes.json();
 
-        const condition = weatherMaster[code] || "unbekannten Wetterbedingungen";
-        
-        if (offset === 0) {
-            return `Es sind aktuell ${temp} Grad bei ${condition}.`;
-        } else {
-            return `In ${offset} Stunden wird es hier etwa ${temp} Grad warm sein bei ${condition}.`;
-        }
+      const now = new Date();
+      const hourIndex = now.getHours() + offset;
+
+      if (hourIndex >= weatherData.hourly.temperature_2m.length) {
+        return "Das liegt zu weit in der Zukunft.";
+      }
+
+      const temp = Math.round(weatherData.hourly.temperature_2m[hourIndex]);
+      const code = weatherData.hourly.weathercode[hourIndex];
+      const condition = weatherMaster[code] || "unbekannten Wetterbedingungen";
+
+      if (offset === 0) {
+        return `In ${realName} ist es aktuell ${temp} Grad bei ${condition}.`;
+      } else {
+        const zeitText = offset === 1 ? "einer Stunde" : `${offset} Stunden`;
+        return `In ${zeitText} werden es in ${realName} etwa ${temp} Grad sein bei ${condition}.`;
+      }
     } catch (err) {
-        return "Die Wetterstation antwortet gerade nicht.";
+      return "Die Wetterstation antwortet gerade nicht.";
     }
   },
 

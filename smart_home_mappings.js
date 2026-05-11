@@ -21,14 +21,14 @@ export const mappings = [
   { keywords: ['lautsprecher', 'aus'], action: 'boxOff' },
 
   // --- Lautstärke ---
-  { keywords: ['box', 'lauter'], action: 'boxLauter', param: /(\d+)/ },
-  { keywords: ['musik', 'lauter'], action: 'boxLauter', param: /(\d+)/ },
+  { keywords: ['box', 'lauter'], action: 'boxLauter', params: [/(\d+)/] },
+  { keywords: ['musik', 'lauter'], action: 'boxLauter', params: [/(\d+)/] },
   
-  { keywords: ['box', 'leiser'], action: 'boxLeiser', param: /(\d+)/ },
-  { keywords: ['musik', 'leiser'], action: 'boxLeiser', param: /(\d+)/ },
+  { keywords: ['box', 'leiser'], action: 'boxLeiser', params: [/(\d+)/] },
+  { keywords: ['musik', 'leiser'], action: 'boxLeiser', params: [/(\d+)/] },
   
-  { keywords: ['lautstärke'], action: 'boxSetVolume', param: /(\d+)/ },
-  { keywords: ['setze', 'vol'], action: 'boxSetVolume', param: /(\d+)/ },
+  { keywords: ['lautstärke'], action: 'boxSetVolume', params: [/(\d+)/] },
+  { keywords: ['setze', 'vol'], action: 'boxSetVolume', params: [/(\d+)/] },
 
   // --- Playback Steuerung ---
   { keywords: ['pause'], action: 'boxPause' },
@@ -51,9 +51,9 @@ export const mappings = [
   { keywords: ['aktuell', 'song'], action: 'boxGetSongData' },
   { keywords: ['interpret'], action: 'boxGetSongData' },
   
-  { keywords: ['wetter'], action: 'getWeather', param: /(\d+)/ },
-  { keywords: ['wie', 'warm'], action: 'getWeather', param: /(\d+)/ },
-  { keywords: ['regen'], action: 'getWeather', param: /(\d+)/ },
+  { keywords: ['wetter'], action: 'getWeather', params: [/(\d+)/, /(?<=in\s)([a-zA-ZäöüÄÖÜß]+)/] },
+  { keywords: ['wie', 'warm'], action: 'getWeather', params: [/(\d+)/, /(?<=in\s)([a-zA-ZäöüÄÖÜß]+)/] },
+  { keywords: ['regen'], action: 'getWeather', params: [/(\d+)/, /(?<=in\s)([a-zA-ZäöüÄÖÜß]+)/] },
 
-  { keywords: ['mistral'], action: 'askAi', param: /(?<=mistral\s).*/i},
+  { keywords: ['mistral'], action: 'askAi', params: [/(?<=mistral\s).*/i]},
 ]

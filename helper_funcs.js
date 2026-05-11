@@ -34,14 +34,22 @@ export async function handleSpeech(input) {
   const match = mappings.find(m => m.keywords.every(kw => text.includes(kw)));
 
   if (match) {
-    let param = null;
+    let extractedArgs = [];
 
-    if (match.param) {
-      const result = text.match(match.param); // filter for params with regex from match param field
-      if (result) param = result[0];
+    if (match.params && Array.isArray(match.params)) {
+      match.params.forEach((p) => {
+        const result = text.match(p);
+        extractedArgs.push(result ? result[1] || result[0] : null);
+      });
     }
     let res = 'Okay'
-    res = await commands[match.action](param);
+
+    if (typeof commands[match.action] === 'function') {
+      res = await commands[match.action](...extractedArgs);
+    } else {
+      console.error(`Action ${match.action} not found!`);
+      res = 'Keine Aktion zugewiesen!';
+    }
     return res || 'Okay';
   }
   
