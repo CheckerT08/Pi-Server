@@ -31,7 +31,7 @@ export const mappings = [
   { keywords: ['setze', 'vol'], action: 'boxSetVolume', params: [/(\d+)/] },
 
   // --- Playback Steuerung ---
-  { keywords: ['pause'], action: 'boxPause' },
+  { keywords: ['paus'], action: 'boxPause' },
   { keywords: ['stopp'], action: 'boxPause' },
   { keywords: ['anhalt'], action: 'boxPause' },
   

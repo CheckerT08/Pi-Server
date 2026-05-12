@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { MISTRAL_API_KEY, LOCATION } from './config/env.js';
+import { LOCATION, MISTRAL_API_KEY } from './config/env.js';
 import { boxRequest, runCommand } from './helper_funcs.js';
 import { stats } from './stats.js';
 
@@ -18,6 +18,8 @@ function getAIInstructions() {
     return "Du bist ein hilfreicher Assistent.";
   }
 }
+
+let locationToCoordinateCache = {};
 
 export const commands = {
   getSystemStatus: async () => {
@@ -139,15 +141,35 @@ export const commands = {
     };
 
     try {
-      const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=de&format=json`);
-      const geoData = await geoRes.json();
+      let latitude;
+      let longitude;
+      let realName;
+  
+      if (locationToCoordinateCache[location]) {
+        console.log(`cache ${location}`)
+        const cached = locationToCoordinateCache[location];
+        latitude = cached.latitude;
+        longitude = cached.longitude;
+        realName = cached.realName;
+      } else {
+        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=de&format=json`);
+        const geoData = await geoRes.json();
+        console.log(`api ${location}`)
+        if (!geoData.results || geoData.results.length === 0) {
+          return `Ich konnte den Ort ${location} leider nicht finden.`;
+        }
 
-      if (!geoData.results || geoData.results.length === 0) {
-        return `Ich konnte den Ort ${location} leider nicht finden.`;
+        latitude = geoData.results[0].latitude;
+        longitude = geoData.results[0].longitude;
+        realName = geoData.results[0].name;
+
+        locationToCoordinateCache[location] = {
+          latitude,
+          longitude,
+          realName
+        };
       }
-
-      const { latitude, longitude, name: realName } = geoData.results[0];
-
+      console.log(locationToCoordinateCache)
       const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weathercode&forecast_days=2&timezone=auto`);
       const weatherData = await weatherRes.json();
 
