@@ -2,7 +2,6 @@ import { runCommand } from './helper_funcs.js';
 import { homework, saveHomework, Task } from './homework_manager.js';
 let clipboard = '';
 let clipboardSentFromPhone = false;
-let notifications = [];
 
 export function setupMiscApi(app) {
   app.get('/api/code-start', (req, res) => {
@@ -100,36 +99,5 @@ export function setupMiscApi(app) {
             return res.status(408).send("Timeout: Handy hat nicht geliefert.");
         }
     }, 100);
-  });
-
-  app.post('/api/clipboard', (req, res) => {
-    clipboard = req.body.text;
-    clipboardSentFromPhone = true;
-    res.sendStatus(200);
-  });
-
-  app.get('/api/notification', (req, res) => {
-        const now = new Date().getTime(); 
-        const threeHours = 3 * 60 * 60 * 1000;
-
-        const notificationsToSend = notifications.filter((element) => {
-            const time = new Date(element.time).getTime(); 
-            const diff = now - time;
-            
-            return diff < threeHours;
-        });
-
-        res.status(200).json(notificationsToSend);
-        notifications = [];
-  });
-
-  app.post('/api/notification', (req, res) => {
-    notifications.push({
-      title: req.body.title,
-      message: req.body.message,
-      time: new Date(),
-    });
-
-    res.status(201).send();
   });
 }
