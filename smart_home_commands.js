@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 function getAIInstructions() {
   try {
-    const filePath = path.join(__dirname, 'ai_instructions.txt');
+    const filePath = path.join(__dirname, 'data', 'ai_instructions.txt');
     return fs.readFileSync(filePath, 'utf8').trim();
   } catch (err) {
     console.error("Konnte instructions.txt nicht laden, nutze Standard-Prompt.");
