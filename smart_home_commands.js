@@ -74,6 +74,7 @@ export const commands = {
 
   boxSetVolume: async (volume) => {
     if (volume && volume != 0) {
+      if (volume > 35) volume = 35;
       await boxRequest(`main/setVolume?volume=${volume}`);
       return `Lautstärke auf ${volume} geändert`;
     } else {
