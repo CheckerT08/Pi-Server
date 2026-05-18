@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { LOCATION, MISTRAL_API_KEY } from './config/env.js';
+import { LOCATION, MISTRAL_API_KEY, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON } from './config/env.js';
 import { boxRequest, runCommand } from './helper_funcs.js';
 import { stats } from './stats.js';
 
@@ -42,7 +42,7 @@ export const commands = {
   boxOn: async () => {
     boxRequest('main/setPower?power=on');
     setTimeout(() => boxRequest(`main/setInput?input=bluetooth`), 5000);
-    fetch('https://ntfy.sh/BluetoothOn_2147483647', {
+    fetch(`https://ntfy.sh/${NTFY_BLUETOOTH_ON}`, {
       method: 'POST'
     });
     return 'Box eingeschaltet';
@@ -50,7 +50,7 @@ export const commands = {
 
   boxOff: async () => {
     boxRequest(`main/setPower?power=standby`);
-    fetch('https://ntfy.sh/BluetoothOff_2147483647', {
+    fetch(`https://ntfy.sh/${NTFY_BLUETOOTH_OFF}`, {
       method: 'POST'
     });
     return 'Box ausgeschaltet';

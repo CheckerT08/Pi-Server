@@ -1,5 +1,8 @@
+import express from 'express';
+import { NTFY_GET_CLIPBOARD, NTFY_SET_CLIPBOARD } from './config/env.js';
 import { runCommand } from './helper_funcs.js';
 import { homework, saveHomework, Task } from './homework_manager.js';
+
 let clipboard = '';
 let clipboardSentFromPhone = false;
 
@@ -77,27 +80,56 @@ export function setupMiscApi(app) {
     res.json({ success: true });
   });
 
+  // LAPTOP ZU PHONE
+  app.post('/api/clipboard', express.text({ type: '*/*' }), async (req, res) => {
+    try {
+      if (!req.body) return res.sendStatus(400);
+
+      await fetch(`https://ntfy.sh/${NTFY_SET_CLIPBOARD}`, {
+        method: 'POST',
+        body: req.body,
+      });
+
+      res.sendStatus(200);
+    } catch (err) {
+      console.error(err);
+      res.sendStatus(500);
+    }
+  });
+
+  // PHONE ZU LAPTOP
   app.get('/api/clipboard', async (req, res) => {
     clipboardSentFromPhone = false
     try {
-        await fetch('https://ntfy.sh/ClipboardGetFromPhone_2147483647', { method: 'POST' });
+      await fetch(`https://ntfy.sh/${NTFY_GET_CLIPBOARD}`, { method: 'POST' });
     } catch (err) {
-        console.error("ntfy Fehler:", err);
-    }
-    
+      console.error("ntfy Fehler:", err);
+    }  
+
     let attempts = 0;
     const interval = setInterval(() => {
-        attempts++;
+      attempts++;
 
-        if (clipboardSentFromPhone) {
-            clearInterval(interval);
-            return res.send(clipboard);
-        }
+      if (clipboardSentFromPhone) {
+        clearInterval(interval);
+        return res.send(clipboard);
+      }  
 
-        if (attempts > 50) { 
-            clearInterval(interval);
-            return res.status(408).send("Timeout: Handy hat nicht geliefert.");
-        }
-    }, 100);
+      if (attempts > 50) {
+        clearInterval(interval);
+        return res.status(408).send("Timeout: Handy hat nicht geliefert.");
+      }  
+    }, 100);  
+  });  
+
+  // Von Handy aufgerufen
+  app.post('/api/clipboard/phone', express.text({ type: '*/*' }), (req, res) => {
+    if (req.body) {
+      clipboard = req.body.text;
+      clipboardSentFromPhone = true;
+      console.log("Clipboard vom Handy empfangen:", clipboard);
+      return res.sendStatus(200);
+    }
+    res.sendStatus(400);
   });
 }
