@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { LOCATION, MISTRAL_API_KEY, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON } from './config/env.js';
+import { LOCATION, MISTRAL_API_KEY, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON, NTFY_TIMER } from './config/env.js';
 import { boxRequest, runCommand } from './helper_funcs.js';
 import { stats } from './stats.js';
 
@@ -226,4 +226,35 @@ export const commands = {
       return "Die Zentrale ist gerade nicht erreichbar";
     }
   },
-}  
+
+setTimer: async (seconds, minutes) => {
+  console.log('min ', minutes);
+  console.log('sec ', seconds);
+
+
+  const min = parseInt(minutes) || 0;
+  const sec = parseInt(seconds) || 0;
+
+  console.log('m ', min);
+  console.log('s ', sec);
+
+  const time = min * 60 + sec;
+
+  console.log(time);
+
+  console.log('-------------------------')
+
+  if (!time || time == 0) return 'Keine Zeitangabe genannt';
+
+  try {
+    await fetch(`https://ntfy.sh/${NTFY_TIMER}`, {
+      method: 'POST',
+      body: String(time),
+    });
+    
+    return 'Timer wurde im Hintergrund gestartet';
+  } catch (error) {
+    console.error('Fehler beim ntfy-Fetch:', error);
+    return 'Timer konnte nicht an ntfy gesendet werden';
+  }
+}}  

@@ -56,4 +56,7 @@ export const mappings = [
   { keywords: ['regen'], action: 'getWeather', params: [/(\d+)/, /(?<=in\s)([a-zA-ZäöüÄÖÜß]+)/] },
 
   { keywords: ['mistral'], action: 'askAi', params: [/(?<=mistral\s).*/i]},
+  
+  // --- Android Activities ---
+  {keywords: ['timer'], action: 'setTimer', params: [ /(\d+)(?=\s*Sekund)/i, /(\d+)(?=\s*Minut)/i ]}
 ]
