@@ -4,4 +4,5 @@ data
 .env
 config/env.js
 tailscale_config.json
+tailscale_config_funnel.json
 ai_instructions.txt
