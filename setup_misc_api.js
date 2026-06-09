@@ -71,7 +71,7 @@ export function setupMiscApi(app) {
     res.json(task);
   });
 
-  app.delete('api/homework/:id', (req, res) => {
+  app.delete('/api/homework/:id', (req, res) => {
     const index = homework.findIndex(t => t.id === req.params.id);
     console.log(`Index: ${index}`)
     if (index === -1) return res.status(404).json({ error: "Nicht gefunden" });
