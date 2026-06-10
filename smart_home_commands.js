@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { LOCATION, MISTRAL_API_KEY, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON, NTFY_TIMER } from './config/env.js';
+import { LOCATION, MISTRAL_API_KEY, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON, NTFY_DLNA, NTFY_DLNAEND, NTFY_TIMER } from './config/env.js';
 import { boxRequest, runCommand } from './helper_funcs.js';
 import { stats } from './stats.js';
 
@@ -113,7 +113,23 @@ export const commands = {
     return `Gerade spielt ${title} von ${artist}`;
   },
 
+  dlna: async (name) => {
+    fetch(`https://ntfy.sh/${NTFY_DLNA}`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "text/plain"
+      },
+      body: name
+    });
+    return 'Fernseher wurde gestartet';
+  },
 
+  dlnaend: async () => {
+    fetch(`https://ntfy.sh/${NTFY_DLNAEND}`, {
+      method: 'POST'
+    });
+    return 'Fernseher Server wurde gestoppt';
+  },
 
   getWeather: async (hoursFromNow, locationInput) => {
     console.log(`weather: ${hoursFromNow}, ${locationInput}`)
@@ -145,7 +161,7 @@ export const commands = {
       let latitude;
       let longitude;
       let realName;
-  
+
       if (locationToCoordinateCache[location]) {
         console.log(`cache ${location}`)
         const cached = locationToCoordinateCache[location];
@@ -227,34 +243,35 @@ export const commands = {
     }
   },
 
-setTimer: async (seconds, minutes) => {
-  console.log('min ', minutes);
-  console.log('sec ', seconds);
+  setTimer: async (seconds, minutes) => {
+    console.log('min ', minutes);
+    console.log('sec ', seconds);
 
 
-  const min = parseInt(minutes) || 0;
-  const sec = parseInt(seconds) || 0;
+    const min = parseInt(minutes) || 0;
+    const sec = parseInt(seconds) || 0;
 
-  console.log('m ', min);
-  console.log('s ', sec);
+    console.log('m ', min);
+    console.log('s ', sec);
 
-  const time = min * 60 + sec;
+    const time = min * 60 + sec;
 
-  console.log(time);
+    console.log(time);
 
-  console.log('-------------------------')
+    console.log('-------------------------')
 
-  if (!time || time == 0) return 'Keine Zeitangabe genannt';
+    if (!time || time == 0) return 'Keine Zeitangabe genannt';
 
-  try {
-    await fetch(`https://ntfy.sh/${NTFY_TIMER}`, {
-      method: 'POST',
-      body: String(time),
-    });
-    
-    return 'Timer wurde im Hintergrund gestartet';
-  } catch (error) {
-    console.error('Fehler beim ntfy-Fetch:', error);
-    return 'Timer konnte nicht an ntfy gesendet werden';
+    try {
+      await fetch(`https://ntfy.sh/${NTFY_TIMER}`, {
+        method: 'POST',
+        body: String(time),
+      });
+
+      return 'Timer wurde im Hintergrund gestartet';
+    } catch (error) {
+      console.error('Fehler beim ntfy-Fetch:', error);
+      return 'Timer konnte nicht an ntfy gesendet werden';
+    }
   }
-}}  
+}  

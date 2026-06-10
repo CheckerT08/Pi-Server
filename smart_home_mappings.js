@@ -32,7 +32,8 @@ export const mappings = [
 
   // --- Playback Steuerung ---
   { keywords: ['paus'], action: 'boxPause' },
-  { keywords: ['stopp'], action: 'boxPause' },
+  { keywords: ['stopp', 'musik'], action: 'boxPause' },
+  { keywords: ['stopp', 'box'], action: 'boxPause' },
   { keywords: ['anhalt'], action: 'boxPause' },
   
   { keywords: ['play'], action: 'boxPlay' },
@@ -44,6 +45,11 @@ export const mappings = [
   
   { keywords: ['zurück'], action: 'boxPrevSong' },
   { keywords: ['vorheriger'], action: 'boxPrevSong' },
+
+  // --- TV Streaming ---
+  { keywords: ['spiel', 'anime'], action: 'dlna', params: [/(?<=anime).*/] },
+  { keywords: ['starte', 'anime'], action: 'dlna', params: [/(?<=anime).*/] },
+  { keywords: ['stop', 'anime'], action: 'dlnaend' },
 
   // --- Informationen ---
   { keywords: ['welcher', 'song'], action: 'boxGetSongData' },
@@ -58,5 +64,5 @@ export const mappings = [
   { keywords: ['mistral'], action: 'askAi', params: [/(?<=mistral\s).*/i]},
   
   // --- Android Activities ---
-  {keywords: ['timer'], action: 'setTimer', params: [ /(\d+)(?=\s*Sekund)/i, /(\d+)(?=\s*Minut)/i ]}
+  {keywords: ['timer'], action: 'setTimer', params: [ /(\d+)(?=\s*Sekund)/i, /(\d+)(?=\s*Minut)/i ]},
 ]
