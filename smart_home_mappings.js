@@ -49,6 +49,8 @@ export const mappings = [
   // --- TV Streaming ---
   { keywords: ['spiel', 'anime'], action: 'dlna', params: [/(?<=anime).*/] },
   { keywords: ['starte', 'anime'], action: 'dlna', params: [/(?<=anime).*/] },
+  { keywords: ['spiel', 'serie'], action: 'dlna', params: [/(?<=serie).*/] },
+  { keywords: ['starte', 'serie'], action: 'dlna', params: [/(?<=serie).*/] },
   { keywords: ['stop', 'anime'], action: 'dlnaend' },
 
   // --- Informationen ---
