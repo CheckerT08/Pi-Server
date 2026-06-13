@@ -66,5 +66,5 @@ export const mappings = [
   { keywords: ['mistral'], action: 'askAi', params: [/(?<=mistral\s).*/i]},
   
   // --- Android Activities ---
-  {keywords: ['timer'], action: 'setTimer', params: [ /(\d+)(?=\s*Sekund)/i, /(\d+)(?=\s*Minut)/i ]},
+  {keywords: ['timer'], action: 'setTimer', params: [ /(\d+)(?=\s*Sekund)/i, /(\d+)(?=\s*Minut)/i, /(?<=bis\s+|^)((\d{1,2}):(\d{2}))/i ]},
 ]

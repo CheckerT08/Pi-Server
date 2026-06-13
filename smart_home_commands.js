@@ -243,22 +243,27 @@ export const commands = {
     }
   },
 
-  setTimer: async (seconds, minutes) => {
-    console.log('min ', minutes);
-    console.log('sec ', seconds);
+  setTimer: async (seconds, minutes, targetTimeString) => {
+    let time = 0;
 
+    if (targetTimeString) {
+      const now = new Date();
 
-    const min = parseInt(minutes) || 0;
-    const sec = parseInt(seconds) || 0;
+      const nowMins = (now.getHours() * 60) + now.getMinutes();
 
-    console.log('m ', min);
-    console.log('s ', sec);
+      const [targetHour, targetMin] = targetTimeString.split(':').map(Number);
+      let diffMins = (targetHour * 60) + targetMin;
 
-    const time = min * 60 + sec;
+      if (diffMins < nowMins) diffMins += 24 * 60;
+      diffMins -= nowMins;
 
-    console.log(time);
+      time = diffMins * 60;
+    } else {
+      const min = parseInt(minutes) || 0;
+      const sec = parseInt(seconds) || 0;
 
-    console.log('-------------------------')
+      time = min * 60 + sec;
+    }
 
     if (!time || time == 0) return 'Keine Zeitangabe genannt';
 
@@ -268,7 +273,7 @@ export const commands = {
         body: String(time),
       });
 
-      return 'Timer wurde im Hintergrund gestartet';
+      return `Timer ${time} Sekunden wurde im Hintergrund gestartet`;
     } catch (error) {
       console.error('Fehler beim ntfy-Fetch:', error);
       return 'Timer konnte nicht an ntfy gesendet werden';
