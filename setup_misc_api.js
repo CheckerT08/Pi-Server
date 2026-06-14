@@ -8,23 +8,24 @@ let clipboardSentFromPhone = false;
 
 export function setupMiscApi(app) {
   app.get('/api/code-start', (req, res) => {
-    runCommand('systemctl --user start code-server', res);
-    console.log('Starte Code Server');
+    runCommand('systemctl --user start code-server');
+    console.log('Starting Code Server');
     res.status(200).json('Code gestartet');
   });
 
   app.get('/api/code-stop', (req, res) => {
-    runCommand('systemctl --user stop code-server', res);
-    console.log('Stoppe Code Server');
+    runCommand('systemctl --user stop code-server');
+    console.log('Stopping Code Server');
     res.status(200).json('Code gestoppt');
   });
 
   app.get('/api/homework', (req, res) => {
-    res.json(homework);
+    res.status(200).json(homework || []);
   });
 
   app.post('/api/homework', (req, res) => {
     const { name, description, dueDate, subject } = req.body;
+
     try {
       const task = new Task({
         name: name || "Neue Aufgabe",
@@ -33,12 +34,12 @@ export function setupMiscApi(app) {
         subject: subject || "",
         done: false
       });
-      console.log(`Neue task erstellt: ${task.name}`)
+      console.log(`Created new task: ${task.name}`)
       homework.push(task);
       saveHomework(homework);
       res.status(201).json(task);
     } catch (err) {
-      console.log(err)
+      console.log(`Failed to create new task: ${err.message}`)
       res.status(400).json({ error: err.message });
     }
   });
@@ -46,7 +47,7 @@ export function setupMiscApi(app) {
   app.put('/api/homework/:id', (req, res) => {
     const { id } = req.params;
     const task = homework.find(t => t.id === id);
-    console.log(`Bearbeite ${task.name}`)
+    console.log(`Updating ${task.name}`)
 
     if (!task) return res.status(404).json({ error: "Task nicht gefunden" });
 
@@ -57,30 +58,31 @@ export function setupMiscApi(app) {
     if (subject) task.subject = subject;
 
     saveHomework(homework);
-    res.json(task);
+    res.status(200).json(task);
   });
 
   app.post('/api/homework/:id/complete', (req, res) => {
     const { id } = req.params;
     const task = homework.find(t => t.id === id);
-    console.log(`Erledige ${task.name}`)
+    console.log(`Completing ${task.name}`)
     if (!task) return res.status(404).json({ error: "Task nicht gefunden" });
 
     task.complete();
     saveHomework(homework);
-    res.json(task);
+    res.status(200).json(task);
   });
 
   app.delete('/api/homework/:id', (req, res) => {
     const index = homework.findIndex(t => t.id === req.params.id);
-    console.log(`Index: ${index}`)
     if (index === -1) return res.status(404).json({ error: "Nicht gefunden" });
+
+    console.log(`Deleting task ${index}`)
     homework.splice(index, 1);
     saveHomework(homework);
     res.json({ success: true });
   });
 
-  // LAPTOP ZU PHONE
+  // laptop to phone
   app.post('/api/clipboard', express.text({ type: '*/*' }), async (req, res) => {
     try {
       if (!req.body) return res.sendStatus(400);
@@ -97,14 +99,14 @@ export function setupMiscApi(app) {
     }
   });
 
-  // PHONE ZU LAPTOP
+  // phone to laptop
   app.get('/api/clipboard', async (req, res) => {
     clipboardSentFromPhone = false
     try {
       await fetch(`https://ntfy.sh/${NTFY_GET_CLIPBOARD}`, { method: 'POST' });
     } catch (err) {
-      console.error("ntfy Fehler:", err);
-    }  
+      console.error("ntfy failed:", err);
+    }
 
     let attempts = 0;
     const interval = setInterval(() => {
@@ -113,21 +115,21 @@ export function setupMiscApi(app) {
       if (clipboardSentFromPhone) {
         clearInterval(interval);
         return res.send(clipboard);
-      }  
+      }
 
       if (attempts > 50) {
         clearInterval(interval);
-        return res.status(408).send("Timeout: Handy hat nicht geliefert.");
-      }  
-    }, 100);  
-  });  
+        return res.status(408).send("Timeout: phone not reached.");
+      }
+    }, 100);
+  });
 
-  // Von Handy aufgerufen
+  // called from phone 
   app.post('/api/clipboard/phone', express.text({ type: '*/*' }), (req, res) => {
     if (req.body) {
       clipboard = req.body.text;
       clipboardSentFromPhone = true;
-      console.log("Clipboard vom Handy empfangen:", clipboard);
+      console.log("Clipboard recieved from phone:", clipboard);
       return res.sendStatus(200);
     }
     res.sendStatus(400);

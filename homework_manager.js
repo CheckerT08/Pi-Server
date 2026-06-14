@@ -58,7 +58,7 @@ export function loadHomework() {
 }
 homework = loadHomework()
 
-// Alle 24 Stunden einmal aufräumen (reicht völlig aus)
+// Clear once per day
 setInterval(filterHomework, 24 * 60 * 60 * 1000);
 
 function filterHomework() {
@@ -67,7 +67,7 @@ function filterHomework() {
   if (updatedHomework.length < originalLength) {
     homework = updatedHomework; 
     saveHomework(homework);
-    console.log(`Cleanup: ${originalLength - updatedHomework.length} alte Aufgaben entfernt.`);
+    console.log(`Cleanup: ${originalLength - updatedHomework.length} old tasks removed.`);
   }
 }
 

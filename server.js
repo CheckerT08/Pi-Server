@@ -23,7 +23,7 @@ setupSmartHomeApi(app);
 
 setupMiscApi(app);
 
-// Server starten
+// Start server
 app.listen(PORT, async () => {
   console.log(`Server läuft auf Port ${PORT}`);
 });

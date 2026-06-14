@@ -1,43 +1,64 @@
 import { boxRequest, handleSpeech } from "./helper_funcs.js";
 
 export function setupSmartHomeApi(app) {
-  app.get('/api/box/power/:state', (req, res) => {
-    boxRequest(`main/setPower?power=${req.params.state}`);
+  app.get('/api/box/power/:state', async (req, res) => {
+    try {
+      await boxRequest(`main/setPower?power=${req.params.state}`);
+    } catch (err) {
+      console.error(`Failed to set box power state: ${err.message}`);
+      return res.status(400).json({error: err.message});
+    }
     res.status(200).json('OK');
   });
 
-  app.get('/api/box/volume/:change', (req, res) => {
+  app.get('/api/box/volume/:change', async (req, res) => {
     const linkVar = req.params.change === 'up' ? 'up&step=2' : 'down&step=2';
-    boxRequest(`main/setVolume?volume=${linkVar}`);
+
+    try {
+      await boxRequest(`main/setVolume?volume=${linkVar}`);
+    } catch (err) {
+      console.error(`Failed to set box volume: ${err.message}`);
+      return res.status(400).json({error: err.message});
+    }
     res.status(200).json('OK');
   });
 
-  app.get('/api/box/input/:value', (req, res) => {
+  app.get('/api/box/input/:value', async (req, res) => {
     const linkVar = req.params.value;
-    boxRequest(`main/setInput?input=${linkVar}`);
+
+    try {
+      await boxRequest(`main/setInput?input=${linkVar}`);
+    } catch (err) {
+      console.error(`Failed to set input: ${err.message}`);
+      return res.status(400).json({error: err.message});
+    }
     res.status(200).json('OK');
   });
 
   app.post('/api/jarvis/', async (req, res) => {
-    if (!req.body) return res.status(400).json('Body ist leer');
-    let { body } = req.body;
-    if (!body) return res.status(200).json('Du hast nichts gesagt, oder?');
-    body = body.split(',')[0];
+    try {
+      const { body } = req.body;
+      if (!body) return res.status(200).json('Du hast nichts gesagt, oder?');
 
-    let input = body.replace(/[.,!?]/gi, '');
-    let result = '';
+      const cleanInput = body.replace(/[.!?,]/gi, '');
 
-    const segments = input.split(' und ');
+      // filter(Boolean) => remove empty/falsy slots; Boolean as function callback
+      const segments = cleanInput.split(/\s+und\s+/i).filter(Boolean);
 
-    // foreach blocked nicht => for of
-    for (const segment of segments) {
-      result += await handleSpeech(segment);
-      result += ' und ';
+      const results = [];
+      for (const segment of segments) {
+        const answer = await handleSpeech(segment.trim());
+        results.push(answer);
+      }
+
+      const finalResult = results.join(' und ');
+
+      console.log(`Input: "${body}" => Result: "${finalResult}"`);
+      return res.status(200).json(finalResult);
+
+    } catch (error) {
+      console.error('Fehler in /api/jarvis/:', error);
+      return res.status(500).json('Da ist intern etwas schiefgelaufen.');
     }
-
-    result = result.replace(/und\s*$/, '').trimEnd();
-
-    console.log(`Result: ${result}, input: ${input}`);
-    res.status(200).json(result);
   });
 }

@@ -2,6 +2,7 @@ import { exec } from 'child_process';
 import { MUSIC_BOX_IP } from './config/env.js';
 import { commands } from './smart_home_commands.js';
 import { mappings } from './smart_home_mappings.js';
+import { promisify } from 'util';
 
 export const boxRequest = async (path) => {
   try {
@@ -10,49 +11,60 @@ export const boxRequest = async (path) => {
     
     return await response.json(); 
   } catch (err) {
-    console.error("Jarvis Music-Modul Fehler:", err.message);
-    return { response_code: -1, error: err.message };
+    console.error("Box Request error: ", err.message);
+    // handled from method caller
+    throw new Error(err.message);
   }
 };
 
-export const runCommand = (cmd, res) => {
-    exec(cmd, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Fehler: ${error.message}`);
-            return;
-        }
+const execPromise = promisify(exec);
+export async function runCommand(cmd) {
+    try {
+        console.log(`Running command ${cmd}...`);
+
+        const { stdout, stderr } = await execPromise(cmd);
+        
         if (stderr) {
             console.warn(`Stderr: ${stderr}`);
         }
+
+        console.log(stdout);
+        
         return stdout;
-    });
+    } catch (error) {
+        console.error(`Command "${cmd}" failed: ${error.message}`);
+    }
 };
 
 export async function handleSpeech(input) {
-  const text = input.toLowerCase();
+    const text = input.toLowerCase().trim();
 
-  const match = mappings.find(m => m.keywords.every(kw => text.includes(kw)));
+    const match = mappings.find(m => m.keywords.every(kw => text.includes(kw)));
 
-  if (match) {
-    let extractedArgs = [];
-
-    if (match.params && Array.isArray(match.params)) {
-      match.params.forEach((p) => {
-        const result = text.match(p);
-        extractedArgs.push(result ? result[1] || result[0] : null);
-      });
+    if (!match) {
+        console.log(`AI-Fallback: "${input}"`);
+        return await commands.askAI(input);
     }
-    let res = 'Okay'
 
-    if (typeof commands[match.action] === 'function') {
-      res = await commands[match.action](...extractedArgs);
-    } else {
-      console.error(`Action ${match.action} not found!`);
-      res = 'Keine Aktion zugewiesen!';
+    const extractedArgs = [];
+    if (Array.isArray(match.params)) {
+        for (const regex of match.params) {
+            const result = text.match(regex);
+            extractedArgs.push(result ? (result[1] || result[0]) : null);
+        }
     }
-    return res || 'Okay';
-  }
-  
-  console.log('AI fallback');
-  return await commands.askAI(input);
+
+    const commandFunc = commands[match.action];
+    if (typeof commandFunc !== 'function') {
+        console.error(`Action "${match.action}" not found`);
+        return 'Keine Aktion zugewiesen!';
+    }
+
+    try {
+        const response = await commandFunc(...extractedArgs);
+        return response || 'Okay';
+    } catch (cmdError) {
+        console.error(`Failed to run ${match.action}: `, cmdError);
+        return `Fehler beim Ausführen von Befehl ${match.action}`;
+    }
 }
