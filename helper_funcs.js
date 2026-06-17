@@ -17,6 +17,7 @@ export const boxRequest = async (path) => {
   }
 };
 
+// old exec with callbacks, new with async await
 const execPromise = promisify(exec);
 export async function runCommand(cmd) {
     try {

@@ -32,14 +32,14 @@ export const commands = {
 
   reboot: async () => {
     console.log("Triggering system reboot...");
-    await runCommand('sudo reboot now');
-    return 'Starte jetzt neu';
+    await runCommand('sleep 5 && sudo reboot now');
+    return 'Starte sofort neu';
   },
 
   fullShutdown: async () => {
     console.log("Triggering full shutdown sequence...");
     try {
-      await runCommand('ssh -o ConnectTimeout=5 laptop "/home/torbinho/.shutdown"');
+      await runCommand('ssh -o ConnectTimeout=5 laptop "/home/torbinho/.shutdown &"');
     } catch (err) {
       console.error("Laptop shutdown command failed: ", err.message);
     }
