@@ -134,7 +134,7 @@ export function setupClipboardApi(app) {
     if (req.body) {
       clipboard = req.body.text;
       clipboardSentFromPhone = true;
-      console.log("Clipboard recieved from phone:", clipboard);
+      console.log("Clipboard received from phone:", clipboard);
       return res.sendStatus(200);
     }
     res.sendStatus(400);
