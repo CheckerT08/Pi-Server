@@ -1,6 +1,4 @@
 import { exec } from 'child_process';
-import { commands } from './smart_home_commands.js';
-import { mappings } from './smart_home_mappings.js';
 import { promisify } from 'util';
 
 // old exec with callbacks, new with async await
@@ -22,36 +20,3 @@ export async function runCommand(cmd) {
         console.error(`Command "${cmd}" failed: ${error.message}`);
     }
 };
-
-export async function handleSpeech(input) {
-    const text = input.toLowerCase().trim();
-
-    const match = mappings.find(m => m.keywords.every(kw => text.includes(kw)));
-
-    if (!match) {
-        console.log(`AI-Fallback: "${input}"`);
-        return await commands.askAI(input);
-    }
-
-    const extractedArgs = [];
-    if (Array.isArray(match.params)) {
-        for (const regex of match.params) {
-            const result = text.match(regex);
-            extractedArgs.push(result ? (result[1] || result[0]) : null);
-        }
-    }
-
-    const commandFunc = commands[match.action];
-    if (typeof commandFunc !== 'function') {
-        console.error(`Action "${match.action}" not found`);
-        return 'Keine Aktion zugewiesen!';
-    }
-
-    try {
-        const response = await commandFunc(...extractedArgs);
-        return response || 'Okay';
-    } catch (cmdError) {
-        console.error(`Failed to run ${match.action}: `, cmdError);
-        return `Fehler beim Ausführen von Befehl ${match.action}`;
-    }
-}

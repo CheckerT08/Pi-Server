@@ -1,10 +1,14 @@
 import fs from 'fs';
 import path from "path";
 import { MISTRAL_API_KEY } from '../config/env.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function getAIInstructions() {
   try {
-    const filePath = path.join(__dirname, 'data', 'ai_instructions.txt');
+    const filePath = path.join(__dirname, '..', 'data', 'ai_instructions.txt');
     return fs.readFileSync(filePath, 'utf8').trim();
   } catch (err) {
     console.error("Failed to load instructions.txt, using default prompt: ", err.message);

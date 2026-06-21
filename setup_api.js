@@ -1,8 +1,9 @@
 import express from 'express';
 import { NTFY_GET_CLIPBOARD, NTFY_SET_CLIPBOARD } from './config/env.js';
-import { handleSpeech, runCommand } from './helper_funcs.js';
+import { runCommand } from './helper_funcs.js';
 import { homework, saveHomework, Task } from './homework_manager.js';
-
+import { commands } from './smart_home_commands.js';
+import { mappings } from './smart_home_mappings.js';
 
 export function setupCodeServerApi(app) {
   app.get('/api/code-start', (req, res) => {
@@ -138,6 +139,39 @@ export function setupClipboardApi(app) {
     }
     res.sendStatus(400);
   });
+}
+
+async function handleSpeech(input) {
+    const text = input.toLowerCase().trim();
+
+    const match = mappings.find(m => m.keywords.every(kw => text.includes(kw)));
+
+    if (!match) {
+        console.log(`AI-Fallback: "${input}"`);
+        return await commands.askAI(input);
+    }
+
+    const extractedArgs = [];
+    if (Array.isArray(match.params)) {
+        for (const regex of match.params) {
+            const result = text.match(regex);
+            extractedArgs.push(result ? (result[1] || result[0]) : null);
+        }
+    }
+
+    const commandFunc = commands[match.action];
+    if (typeof commandFunc !== 'function') {
+        console.error(`Action "${match.action}" not found`);
+        return 'Keine Aktion zugewiesen!';
+    }
+
+    try {
+        const response = await commandFunc(...extractedArgs);
+        return response || 'Okay';
+    } catch (cmdError) {
+        console.error(`Failed to run ${match.action}: `, cmdError);
+        return `Fehler beim Ausführen von Befehl ${match.action}`;
+    }
 }
 
 export function setupJarvisApi(app) {
