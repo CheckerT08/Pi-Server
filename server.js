@@ -2,9 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { PORT } from './config/env.js';
-import { setupMiscApi } from './setup_misc_api.js';
+import { setupClipboardApi, setupCodeServerApi, setupHomeworkApi, setupJarvisApi } from './setup_api.js';
 import { setupWebpages } from './setup_webpages.js';
-import { setupSmartHomeApi } from './smart_home_api.js';
 import { fileURLToPath } from 'url';
 
 const app = express();
@@ -19,9 +18,10 @@ app.set('views', path.join(__dirname, 'views'));
 
 setupWebpages(app);
 
-setupSmartHomeApi(app);
-
-setupMiscApi(app);
+setupClipboardApi(app);
+setupCodeServerApi(app);
+setupHomeworkApi(app);
+setupJarvisApi(app);
 
 // Start server
 app.listen(PORT, async () => {
