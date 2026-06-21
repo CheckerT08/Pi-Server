@@ -1,21 +1,7 @@
 import { exec } from 'child_process';
-import { MUSIC_BOX_IP } from './config/env.js';
 import { commands } from './smart_home_commands.js';
 import { mappings } from './smart_home_mappings.js';
 import { promisify } from 'util';
-
-export const boxRequest = async (path) => {
-  try {
-    const response = await fetch(`http://${MUSIC_BOX_IP}/YamahaExtendedControl/v1/${path}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    return await response.json(); 
-  } catch (err) {
-    console.error("Box Request error: ", err.message);
-    // handled from method caller
-    throw new Error(err.message);
-  }
-};
 
 // old exec with callbacks, new with async await
 const execPromise = promisify(exec);
