@@ -11,7 +11,7 @@ export function setupCodeServerApi(app) {
     console.log('Starting Code Server');
     res.status(200).json('Code gestartet');
   });
-  
+
   app.get('/api/code-stop', (req, res) => {
     runCommand('systemctl --user stop code-server');
     console.log('Stopping Code Server');
@@ -23,10 +23,10 @@ export function setupHomeworkApi(app) {
   app.get('/api/homework', (req, res) => {
     res.status(200).json(homework || []);
   });
-  
+
   app.post('/api/homework', (req, res) => {
     const { name, description, dueDate, subject } = req.body;
-    
+
     try {
       const task = new Task({
         name: name || "Neue Aufgabe",
@@ -44,20 +44,20 @@ export function setupHomeworkApi(app) {
       res.status(400).json({ error: err.message });
     }
   });
-  
+
   app.put('/api/homework/:id', (req, res) => {
     const { id } = req.params;
     const task = homework.find(t => t.id === id);
     console.log(`Updating ${task.name}`)
-    
+
     if (!task) return res.status(404).json({ error: "Task nicht gefunden" });
-    
+
     const { name, description, dueDate, subject } = req.body;
     if (name) task.name = name;
     if (description) task.description = description;
     if (dueDate) task.dueDate = new Date(dueDate);
     if (subject) task.subject = subject;
-    
+
     saveHomework(homework);
     res.status(200).json(task);
   });
@@ -67,7 +67,7 @@ export function setupHomeworkApi(app) {
     const task = homework.find(t => t.id === id);
     console.log(`Completing ${task.name}`)
     if (!task) return res.status(404).json({ error: "Task nicht gefunden" });
-    
+
     task.complete();
     saveHomework(homework);
     res.status(200).json(task);
@@ -91,19 +91,19 @@ export function setupClipboardApi(app) {
   app.post('/api/clipboard', express.text({ type: '*/*' }), async (req, res) => {
     try {
       if (!req.body) return res.sendStatus(400);
-      
+
       await fetch(`https://ntfy.sh/${NTFY_SET_CLIPBOARD}`, {
         method: 'POST',
         body: req.body,
       });
-      
+
       res.sendStatus(200);
     } catch (err) {
       console.error(err);
       res.sendStatus(500);
     }
   });
-  
+
   // phone to laptop
   app.get('/api/clipboard', async (req, res) => {
     clipboardSentFromPhone = false
@@ -112,23 +112,23 @@ export function setupClipboardApi(app) {
     } catch (err) {
       console.error("ntfy failed:", err);
     }
-    
+
     let attempts = 0;
     const interval = setInterval(() => {
       attempts++;
-      
+
       if (clipboardSentFromPhone) {
         clearInterval(interval);
         return res.send(clipboard);
       }
-      
+
       if (attempts > 50) {
         clearInterval(interval);
         return res.status(408).send("Timeout: phone not reached.");
       }
     }, 100);
   });
-  
+
   // called from phone 
   app.post('/api/clipboard/phone', express.text({ type: '*/*' }), (req, res) => {
     if (req.body) {
@@ -142,36 +142,42 @@ export function setupClipboardApi(app) {
 }
 
 async function handleSpeech(input) {
-    const text = input.toLowerCase().trim();
+  const text = input.toLowerCase().trim();
 
-    const match = mappings.find(m => m.keywords.every(kw => text.includes(kw)));
+  const match = mappings.find(m => m.keywords.every(kw => text.includes(kw)));
 
-    if (!match) {
-        console.log(`AI-Fallback: "${input}"`);
-        return await commands.askAI(input);
+  if (!match) {
+    console.log(`AI-Fallback: "${input}"`);
+    return await commands.askAI(input);
+  }
+
+  const extractedArgs = [];
+  if (Array.isArray(match.params)) {
+    for (const regex of match.params) {
+      const matchResult = text.match(regex);
+
+      if (matchResult) {
+        let value = matchResult[1] || matchResult[0];
+        value = value.trim();
+        extractedArgs.push(value);
+      } else {
+        extractedArgs.push(null);
+      }
     }
+  }
+  const commandFunc = commands[match.action];
+  if (typeof commandFunc !== 'function') {
+    console.error(`Action "${match.action}" not found`);
+    return 'Keine Aktion zugewiesen!';
+  }
 
-    const extractedArgs = [];
-    if (Array.isArray(match.params)) {
-        for (const regex of match.params) {
-            const result = text.match(regex);
-            extractedArgs.push(result ? (result[1] || result[0]) : null);
-        }
-    }
-
-    const commandFunc = commands[match.action];
-    if (typeof commandFunc !== 'function') {
-        console.error(`Action "${match.action}" not found`);
-        return 'Keine Aktion zugewiesen!';
-    }
-
-    try {
-        const response = await commandFunc(...extractedArgs);
-        return response || 'Okay';
-    } catch (cmdError) {
-        console.error(`Failed to run ${match.action}: `, cmdError);
-        return `Fehler beim Ausführen von Befehl ${match.action}`;
-    }
+  try {
+    const response = await commandFunc(...extractedArgs);
+    return response || 'Okay';
+  } catch (cmdError) {
+    console.error(`Failed to run ${match.action}: `, cmdError);
+    return `Fehler beim Ausführen von Befehl ${match.action}`;
+  }
 }
 
 export function setupJarvisApi(app) {
@@ -179,23 +185,23 @@ export function setupJarvisApi(app) {
     try {
       const { body } = req.body;
       if (!body) return res.status(200).json('Du hast nichts gesagt, oder?');
-      
+
       const cleanInput = body.replace(/[.!?,]/gi, '');
-      
+
       // filter(Boolean) => remove empty/falsy slots; Boolean as function callback
       const segments = cleanInput.split(/\s+und\s+/i).filter(Boolean);
-      
+
       const results = [];
       for (const segment of segments) {
         const answer = await handleSpeech(segment.trim());
         results.push(answer);
       }
-      
+
       const finalResult = results.join(' und ');
-      
+
       console.log(`Input: "${body}" => Result: "${finalResult}"`);
       return res.status(200).json(finalResult);
-      
+
     } catch (error) {
       console.error('Fehler in /api/jarvis/:', error);
       return res.status(500).json('Da ist intern etwas schiefgelaufen.');
