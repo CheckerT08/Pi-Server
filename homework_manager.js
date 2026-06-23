@@ -72,4 +72,3 @@ function filterHomework() {
 }
 
 filterHomework();
-
