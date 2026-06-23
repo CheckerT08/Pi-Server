@@ -20,3 +20,5 @@ export async function runCommand(cmd) {
         console.error(`Command "${cmd}" failed: ${error.message}`);
     }
 };
+
+export const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));

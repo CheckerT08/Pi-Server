@@ -1,12 +1,14 @@
-import { NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON } from "../config/env.js";
-import { MUSIC_BOX_IP } from "../config/env.js";
+import { KÜCHE_BOX_IP, MUSIC_BOX_IP, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON, WOHNZIMMER_BOX_IP } from "../config/env.js";
+import { sleep } from "../helper_funcs.js";
 
-async function boxRequest(path) {
+async function boxRequest(path, ip) {
+  if (!ip) return;
+
   try {
-    const response = await fetch(`http://${MUSIC_BOX_IP}/YamahaExtendedControl/v1/${path}`);
+    const response = await fetch(`http://${ip}/YamahaExtendedControl/v1/${path}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    return await response.json(); 
+
+    return await response.json();
   } catch (err) {
     console.error("Box Request error: ", err.message);
     // handled from method caller
@@ -14,50 +16,67 @@ async function boxRequest(path) {
   }
 };
 
+let currentDevice = '';
+const deviceNameToIp = {
+  'box': MUSIC_BOX_IP,
+  'küche': KÜCHE_BOX_IP,
+  'wohnzimmer': WOHNZIMMER_BOX_IP,
+}
+const currentIp = () => { return deviceNameToIp[currentDevice] || ''; };
+
+async function toggleDevice(connected, device = currentDevice) {
+  const isPassive = !(device in deviceNameToIp);
+
+  let powerState = connected ? 'on' : 'standby';
+  try {
+    if (!isPassive && device !== '') {
+      await boxRequest(`main/setPower?power=${powerState}`, deviceNameToIp[device]);
+
+      if (connected) {
+        setTimeout(async () => {
+          try {
+            console.log('Switching input to bluetooth...');
+            await boxRequest('main/setInput?input=bluetooth', deviceNameToIp[device]);
+          } catch (err) {
+            console.error('Failed to switch box input to bluetooth:', err.message);
+          }
+        }, 5000);
+      }
+
+    } else if (device === '') {
+      console.log(`Target Device was empty. Cancelling!`);
+      return;
+    }
+
+    if (device !== 'handy') {
+      const targetURL = 'https://ntfy.sh/' + (connected ? NTFY_BLUETOOTH_ON : NTFY_BLUETOOTH_OFF);
+      await fetch(targetURL, { method: 'POST', body: device });
+    }
+
+    currentDevice = device;
+  } catch (err) {
+    console.log(`Failed to toggle device "${device}": `, err.message);
+  }
+}
+async function switchToDevice(device) {
+  await toggleDevice(false);
+  await sleep(3000);
+  await toggleDevice(true, device);
+}
 
 export const boxCommands = {
-  boxOn: async () => {
-    console.log("Turning audio box ON...");
-    try {
-      await boxRequest('main/setPower?power=on');
-
-      // Switch input to bluetooth after 5 seconds init time
-      setTimeout(async () => {
-        try {
-          console.log("Switching box input to bluetooth...");
-          await boxRequest(`main/setInput?input=bluetooth`);
-        } catch (err) {
-          console.error("Failed to switch box input to bluetooth:", err.message);
-        }
-      }, 5000);
-
-      await fetch(`https://ntfy.sh/${NTFY_BLUETOOTH_ON}`, { method: 'POST' });
-      return 'Box eingeschaltet';
-    } catch (err) {
-      console.error("Failed to turn on the box:", err.message);
-      return 'Box konnte nicht eingeschaltet werden';
-    }
-  },
-
-  boxOff: async () => {
-    console.log("Turning audio box OFF (Standby)...");
-    try {
-      await boxRequest(`main/setPower?power=standby`);
-      await fetch(`https://ntfy.sh/${NTFY_BLUETOOTH_OFF}`, { method: 'POST' });
-      return 'Box ausgeschaltet';
-    } catch (err) {
-      console.error("Failed to turn off the box:", err.message);
-      return 'Box konnte nicht ausgeschaltet werden';
-    }
+  switchAudioDevice: async (device) => {
+    await switchToDevice(device);
+    return `Zu Gerät ${device} gewechselt`;
   },
 
   boxLauter: async (addVolume) => {
     const change = parseInt(addVolume) || 3;
     console.log(`Increasing box volume by ${change}...`);
     try {
-      const status = await boxRequest(`main/getStatus`);
+      const status = await boxRequest(`main/getStatus`, currentIp());
       const currentVolume = status?.volume || 20;
-      await boxRequest(`main/setVolume?volume=${currentVolume + change}`);
+      await boxRequest(`main/setVolume?volume=${currentVolume + change}`, currentIp());
       return 'Box lauter gemacht';
     } catch (err) {
       console.error("boxLauter failed:", err.message);
@@ -69,9 +88,9 @@ export const boxCommands = {
     const change = parseInt(addVolume) || 3;
     console.log(`Decreasing box volume by ${change}...`);
     try {
-      const status = await boxRequest(`main/getStatus`);
+      const status = await boxRequest(`main/getStatus`, currentIp());
       const currentVolume = status?.volume || 20;
-      await boxRequest(`main/setVolume?volume=${currentVolume - change}`);
+      await boxRequest(`main/setVolume?volume=${currentVolume - change}`, currentIp());
       return 'Box leiser gemacht';
     } catch (err) {
       console.error("boxLeiser failed:", err.message);
@@ -89,7 +108,7 @@ export const boxCommands = {
     try {
       // Safety cap
       const safeVolume = targetVolume > 35 ? 35 : targetVolume;
-      await boxRequest(`main/setVolume?volume=${safeVolume}`);
+      await boxRequest(`main/setVolume?volume=${safeVolume}`, currentIp());
       return `Lautstärke auf ${safeVolume} geändert`;
     } catch (err) {
       console.error("boxSetVolume failed:", err.message);
@@ -100,7 +119,7 @@ export const boxCommands = {
   boxSkipSong: async () => {
     console.log("Skipping song...");
     try {
-      await boxRequest(`netusb/setPlayback?playback=next`);
+      await boxRequest(`netusb/setPlayback?playback=next`, currentIp());
       return 'Song übersprungen';
     } catch (err) {
       console.error("boxSkipSong failed:", err.message);
@@ -111,7 +130,7 @@ export const boxCommands = {
   boxPrevSong: async () => {
     console.log("Going back to previous song...");
     try {
-      await boxRequest(`netusb/setPlayback?playback=previous`);
+      await boxRequest(`netusb/setPlayback?playback=previous`, currentIp());
       return 'Song zurück';
     } catch (err) {
       console.error("boxPrevSong failed:", err.message);
@@ -122,7 +141,7 @@ export const boxCommands = {
   boxPause: async () => {
     console.log("Pausing music playback...");
     try {
-      await boxRequest(`netusb/setPlayback?playback=pause`);
+      await boxRequest(`netusb/setPlayback?playback=pause`, currentIp());
       return 'Musik pausiert';
     } catch (err) {
       console.error("boxPause failed:", err.message);
@@ -133,7 +152,7 @@ export const boxCommands = {
   boxPlay: async () => {
     console.log("Resuming music playback...");
     try {
-      await boxRequest(`netusb/setPlayback?playback=play`);
+      await boxRequest(`netusb/setPlayback?playback=play`, currentIp());
       return 'Spiele weiter';
     } catch (err) {
       console.error("boxPlay failed:", err.message);
@@ -144,7 +163,7 @@ export const boxCommands = {
   boxGetSongData: async () => {
     console.log("Fetching current song info...");
     try {
-      const res = await boxRequest(`netusb/getPlayInfo`);
+      const res = await boxRequest(`netusb/getPlayInfo`, currentIp());
       if (!res || !res.artist || !res.track) return 'Es spielt gerade nichts';
       return `Gerade spielt ${res.track} von ${res.artist}`;
     } catch (err) {
