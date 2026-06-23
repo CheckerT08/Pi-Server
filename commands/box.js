@@ -50,7 +50,7 @@ async function toggleDevice(connected, device = currentDevice) {
 
     if (device !== 'handy') {
       const targetURL = 'https://ntfy.sh/' + (connected ? NTFY_BLUETOOTH_ON : NTFY_BLUETOOTH_OFF);
-      await fetch(targetURL, { method: 'POST', body: device });
+      await fetch(targetURL, { method: 'POST', body: (connected ? device : '') });
     }
 
     currentDevice = device;
