@@ -28,7 +28,7 @@ export const timerCommands = {
         method: 'POST',
         body: String(time),
       });
-      return `Timer für ${time} Sekunden wurde gestartet`;
+      return `Timer für ${Math.floor(time / 60)} Minuten wurde gestartet`;
     } catch (err) {
       console.error('Failed to send timer to ntfy:', err.message);
       return 'Timer konnte nicht gestartet werden';
