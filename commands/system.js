@@ -14,7 +14,7 @@ export const systemCommands = {
   reboot: async () => {
     console.log("Triggering system reboot...");
     await runCommand('sleep 5 && sudo reboot now');
-    return 'Starte sofort neu';
+    return 'Starte in 5 Sekunden neu';
   },
 
   fullShutdown: async () => {
@@ -24,7 +24,7 @@ export const systemCommands = {
     } catch (err) {
       console.error("Laptop shutdown command failed: ", err.message);
     }
-    await commands.boxOff();
+    await commands.switchAudioDevice('handy');
     return 'Alles aus. Bis bald';
   },
 }
