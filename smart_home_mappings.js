@@ -12,7 +12,7 @@ export const mappings = [
   { keywords: ['schlafenszeit'], action: 'fullShutdown' },
 
   // --- Box Power & Input ---
-  { keywords: ['wechs'], action: 'switchAudioDevice', params: [/(?<=zu).*/] },
+  { keywords: ['wechs'], action: 'switchAudioDevice', params: [/(?<=zu\s+(?:gerät\s+)?).*/] },
 
   // --- Lautstärke ---
   { keywords: ['box', 'lauter'], action: 'boxLauter', params: [/(\d+)/] },
