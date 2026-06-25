@@ -1,5 +1,5 @@
 import { homework } from "./homework_manager.js";
-import { stats } from "./stats.js";
+import { stats } from "./helper_funcs.js";
 
 export function setupWebpages(app) {
   app.get('/', (req, res) => {

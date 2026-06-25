@@ -1,6 +1,6 @@
 import { runCommand } from "../helper_funcs.js";
 import { commands } from "../smart_home_commands.js";
-import { stats } from "../stats.js";
+import { stats } from "../helper_funcs.js";
 
 export const systemCommands = {
   getSystemStatus: async () => {
