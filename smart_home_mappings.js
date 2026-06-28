@@ -41,10 +41,10 @@ export const mappings = [
   { keywords: ['vorheriger'], action: 'boxPrevSong' },
 
   // --- TV Streaming ---
-  { keywords: ['spiel', 'anime'], action: 'dlna', params: [/(?<=anime).*/] },
-  { keywords: ['starte', 'anime'], action: 'dlna', params: [/(?<=anime).*/] },
-  { keywords: ['spiel', 'serie'], action: 'dlna', params: [/(?<=serie).*/] },
-  { keywords: ['starte', 'serie'], action: 'dlna', params: [/(?<=serie).*/] },
+  { keywords: ['spiel', 'anime'], action: 'dlna', params: [/(?<=anime).*/, /unten\s*Anime/] },
+  { keywords: ['starte', 'anime'], action: 'dlna', params: [/(?<=anime).*/, /unten\s*Anime/] },
+  { keywords: ['spiel', 'serie'], action: 'dlna', params: [/(?<=serie).*/, /unten\s*Serie/] },
+  { keywords: ['starte', 'serie'], action: 'dlna', params: [/(?<=serie).*/, /unten\s*Serie/] },
   { keywords: ['stop', 'anime'], action: 'dlnaend' },
 
   // --- Informationen ---

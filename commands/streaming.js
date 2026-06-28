@@ -1,9 +1,12 @@
-import { NTFY_DLNA, NTFY_DLNAEND } from "../config/env.js";
+import { NTFY_DLNA, NTFY_DLNAEND, NTFY_BOTTOMTV } from "../config/env.js";
 
 export const streamingCommands = {
-  dlna: async (name) => {
-    console.log(`Starting TV DLNA server for content: ${name}...`);
+  dlna: async (name, bottom) => {
+    console.log(`Starting TV DLNA server for content: ${name} at ${bottom}`);
     try {
+      if (bottom) {
+        await fetch(`https://ntfy.sh/${NTFY_BOTTOMTV}`, { method: 'POST' })
+      }
       await fetch(`https://ntfy.sh/${NTFY_DLNA}`, {
         method: 'POST',
         headers: { "Content-Type": "text/plain" },
