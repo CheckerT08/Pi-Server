@@ -5,7 +5,8 @@ export const streamingCommands = {
     console.log(`Starting TV DLNA server for content: ${name} at ${bottom}`);
     try {
       if (bottom) {
-        await fetch(`https://ntfy.sh/${NTFY_BOTTOMTV}`, { method: 'POST' })
+        await fetch(`https://ntfy.sh/${NTFY_BOTTOMTV}`, { method: 'POST' });
+        console.log('Bottom TV Message Sent')
       }
       await fetch(`https://ntfy.sh/${NTFY_DLNA}`, {
         method: 'POST',

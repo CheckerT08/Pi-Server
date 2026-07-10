@@ -16,6 +16,29 @@ async function boxRequest(path, ip) {
   }
 };
 
+async function waitForDeviceResponding(ip, maxAttempts) {
+  if (!ip) return false;
+
+  let attempts = 0;
+  while (attempts < maxAttempts) {
+    attempts++;
+
+    try {
+      const result = await boxRequest('main/getStatus', ip);
+      if (result && result.power) {
+        return true;
+      }
+    } catch (err) {
+      console.log('Error while waiting for device to turn on:', err.message, 'at Atempt', attempts);
+    }
+
+    await sleep(500);
+  }
+
+  console.log('Device not responded. Terminating.')
+  return false;
+}
+
 let currentDevice = '';
 const deviceNameToIp = {
   'box': MUSIC_BOX_IP,
@@ -31,16 +54,13 @@ async function toggleDevice(connected, device = currentDevice) {
   try {
     if (!isPassive && device !== '') {
       await boxRequest(`main/setPower?power=${powerState}`, deviceNameToIp[device]);
-
-      if (connected) {
-        setTimeout(async () => {
-          try {
-            console.log('Switching input to bluetooth...');
-            await boxRequest('main/setInput?input=bluetooth', deviceNameToIp[device]);
-          } catch (err) {
-            console.error('Failed to switch box input to bluetooth:', err.message);
-          }
-        }, 5000);
+      if (connected && await waitForDeviceResponding(deviceNameToIp[device], 20)) { // if connected false skip waiting
+        try {
+          console.log('Switching input to bluetooth...');
+          await boxRequest('main/setInput?input=bluetooth', deviceNameToIp[device]);
+        } catch (err) {
+          console.error('Failed to switch box input to bluetooth:', err.message);
+        }		
       }
 
     } else if (device === '') {
