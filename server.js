@@ -25,5 +25,5 @@ setupJarvisApi(app);
 
 // Start server
 app.listen(PORT, async () => {
-  console.log(`Server läuft auf Port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
