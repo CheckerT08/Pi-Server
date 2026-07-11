@@ -7,7 +7,7 @@ async function boxRequest(path, ip) {
   try {
     const response = await fetch(`http://${ip}/YamahaExtendedControl/v1/${path}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
+    console.log('making box request', path, 'to ip', ip);
     return await response.json();
   } catch (err) {
     console.error("Box Request error: ", err.message);
@@ -28,6 +28,7 @@ async function waitForDeviceResponding(ip, maxAttempts) {
       if (result && result.power) {
         return true;
       }
+      console.log('device', ip, `not responding (${maxAttempts}/50)`)
     } catch (err) {
       console.log('Error while waiting for device to turn on:', err.message, 'at Atempt', attempts);
     }
@@ -60,7 +61,7 @@ async function toggleDevice(connected, device = currentDevice) {
           await boxRequest('main/setInput?input=bluetooth', deviceNameToIp[device]);
         } catch (err) {
           console.error('Failed to switch box input to bluetooth:', err.message);
-        }		
+        }
       }
 
     } else if (device === '') {
@@ -78,6 +79,7 @@ async function toggleDevice(connected, device = currentDevice) {
     console.log(`Failed to toggle device "${device}": `, err.message);
   }
 }
+
 async function switchToDevice(device) {
   await toggleDevice(false);
   await sleep(3000);
@@ -86,6 +88,7 @@ async function switchToDevice(device) {
 
 export const boxCommands = {
   switchAudioDevice: async (device) => {
+    console.log('switching to', device)
     await switchToDevice(device);
     return `Zu Gerät ${device} gewechselt`;
   },
