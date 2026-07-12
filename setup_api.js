@@ -181,12 +181,12 @@ async function handleSpeech(input) {
 }
 
 export function setupJarvisApi(app) {
-  app.post('/api/jarvis/', async (req, res) => {
+  app.post('/api/jarvis/', express.text({type: ['text/plain', 'application/x-www-form-urlencoded']}), async (req, res) => {
     try {
-      const { body } = req.body;
-      if (!body) return res.status(200).json('Du hast nichts gesagt, oder?');
+      const rawInput = typeof req.body === 'object' ? req.body?.body : req.body;
+      if (!rawInput) return res.status(200).json('Du hast nichts gesagt, oder?');
 
-      const cleanInput = body.replace(/[.!?,]/gi, '');
+      const cleanInput = rawInput.replace(/[.!?,]/gi, '');
 
       // filter(Boolean) => remove empty/falsy slots; Boolean as function callback
       const segments = cleanInput.split(/\s+und\s+/i).filter(Boolean);
@@ -199,7 +199,7 @@ export function setupJarvisApi(app) {
 
       const finalResult = results.join(' und ');
 
-      console.log(`Input: "${body}" => Result: "${finalResult}"`);
+      console.log(`Input: "${cleanInput}" => Result: "${finalResult}"`);
       return res.status(200).json(finalResult);
 
     } catch (error) {
