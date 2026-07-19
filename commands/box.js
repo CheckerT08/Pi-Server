@@ -3,11 +3,11 @@ import { sleep } from "../helper_funcs.js";
 
 async function boxRequest(path, ip) {
   if (!ip) return;
-
+  
   try {
+    console.log('making box request', path, 'to ip', ip);
     const response = await fetch(`http://${ip}/YamahaExtendedControl/v1/${path}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    console.log('making box request', path, 'to ip', ip);
     return await response.json();
   } catch (err) {
     console.error("Box Request error: ", err.message);
