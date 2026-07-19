@@ -13,7 +13,7 @@ export const systemCommands = {
 
   reboot: async () => {
     console.log("Triggering system reboot...");
-    await runCommand('sleep 5 && sudo reboot now');
+    runCommand('sleep 5 && sudo reboot now');
     return 'Starte in 5 Sekunden neu';
   },
 
