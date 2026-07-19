@@ -1,23 +1,8 @@
 import express from 'express';
 import { NTFY_GET_CLIPBOARD, NTFY_SET_CLIPBOARD } from './config/env.js';
-import { runCommand } from './helper_funcs.js';
 import { homework, saveHomework, Task } from './homework_manager.js';
 import { commands } from './smart_home_commands.js';
 import { mappings } from './smart_home_mappings.js';
-
-export function setupCodeServerApi(app) {
-  app.get('/api/code-start', (req, res) => {
-    runCommand('systemctl --user start code-server');
-    console.log('Starting Code Server');
-    res.status(200).json('Code gestartet');
-  });
-
-  app.get('/api/code-stop', (req, res) => {
-    runCommand('systemctl --user stop code-server');
-    console.log('Stopping Code Server');
-    res.status(200).json('Code gestoppt');
-  });
-}
 
 export function setupHomeworkApi(app) {
   app.get('/api/homework', (req, res) => {

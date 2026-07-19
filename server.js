@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import express from 'express';
 import path from 'path';
-import { PORT } from './config/env.js';
-import { setupClipboardApi, setupCodeServerApi, setupHomeworkApi, setupJarvisApi } from './setup_api.js';
-import { setupWebpages } from './setup_webpages.js';
 import { fileURLToPath } from 'url';
+import { PORT } from './config/env.js';
+import { setupClipboardApi, setupHomeworkApi, setupJarvisApi } from './setup_api.js';
+import { setupWebpages } from './setup_webpages.js';
 
 const app = express();
 
@@ -19,7 +19,6 @@ app.set('views', path.join(__dirname, 'views'));
 setupWebpages(app);
 
 setupClipboardApi(app);
-setupCodeServerApi(app);
 setupHomeworkApi(app);
 setupJarvisApi(app);
 
