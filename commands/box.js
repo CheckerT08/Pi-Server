@@ -1,9 +1,12 @@
 import { KÜCHE_BOX_IP, MUSIC_BOX_IP, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON, WOHNZIMMER_BOX_IP } from "../config/env.js";
 import { sleep } from "../helper_funcs.js";
 
+let volumeCache = null;
+let isPausedCache = null;
+
 async function boxRequest(path, ip) {
   if (!ip) return;
-  
+
   try {
     console.log('making box request', path, 'to ip', ip);
     const response = await fetch(`http://${ip}/YamahaExtendedControl/v1/${path}`);
@@ -82,6 +85,8 @@ async function toggleDevice(connected, device = currentDevice) {
 
 async function switchToDevice(device) {
   await toggleDevice(false);
+  volumeCache = null;
+  isPausedCache = null;
   await sleep(3000);
   await toggleDevice(true, device);
 }
@@ -95,27 +100,56 @@ export const boxCommands = {
 
   boxLauter: async (addVolume) => {
     const change = parseInt(addVolume) || 3;
+    const ip = currentIp();
     console.log(`Increasing box volume by ${change}...`);
     try {
-      const status = await boxRequest(`main/getStatus`, currentIp());
-      const currentVolume = status?.volume || 20;
-      await boxRequest(`main/setVolume?volume=${currentVolume + change}`, currentIp());
+      if (volumeCache === null) {
+        const status = await boxRequest('main/getStatus', ip);
+        volumeCache = status?.volume ?? 20;
+      }
+
+      let targetVolume;
+      if (isPausedCache === true || volumeCache === 0) {
+        targetVolume = change;
+        isPausedCache = false;
+        boxCommands.boxPlay();
+      } else {
+        targetVolume = volumeCache + change;
+        volumeCache = targetVolume;
+      }
+
+      await boxCommands.boxSetVolume(targetVolume);
       return 'Box lauter gemacht';
     } catch (err) {
-      console.error("boxLauter failed:", err.message);
+      volumeCache = null;
+      isPausedCache = null;
+      console.error('boxLauter failed:', err.message);
       return 'Lautstärke konnte nicht geändert werden';
     }
   },
 
   boxLeiser: async (addVolume) => {
     const change = parseInt(addVolume) || 3;
+    const ip = currentIp();
     console.log(`Decreasing box volume by ${change}...`);
     try {
-      const status = await boxRequest(`main/getStatus`, currentIp());
-      const currentVolume = status?.volume || 20;
-      await boxRequest(`main/setVolume?volume=${currentVolume - change}`, currentIp());
+      if (volumeCache === null) {
+        const status = await boxRequest('main/getStatus', ip);
+        volumeCache = status?.volume ?? 20;
+      }
+
+      const targetVolume = Math.max(0, volumeCache - change);
+
+      if (targetVolume === 0 && volumeCache !== 0) {
+        boxCommands.boxPause();
+      }
+
+
+      await boxCommands.boxSetVolume(targetVolume);
       return 'Box leiser gemacht';
     } catch (err) {
+      volumeCache = null;
+      isPausedCache = null;
       console.error("boxLeiser failed:", err.message);
       return 'Lautstärke konnte nicht geändert werden';
     }
@@ -129,12 +163,14 @@ export const boxCommands = {
 
     console.log(`Setting box volume to ${targetVolume}...`);
     try {
-      // Safety cap
       const safeVolume = targetVolume > 35 ? 35 : targetVolume;
       await boxRequest(`main/setVolume?volume=${safeVolume}`, currentIp());
+
+      volumeCache = safeVolume;
       return `Lautstärke auf ${safeVolume} geändert`;
     } catch (err) {
-      console.error("boxSetVolume failed:", err.message);
+      volumeCache = null;
+      console.error('boxSetVolume failed:', err.message);
       return 'Lautstärke konnte nicht gesetzt werden';
     }
   },
@@ -165,6 +201,7 @@ export const boxCommands = {
     console.log("Pausing music playback...");
     try {
       await boxRequest(`netusb/setPlayback?playback=pause`, currentIp());
+      isPausedCache = true;
       return 'Musik pausiert';
     } catch (err) {
       console.error("boxPause failed:", err.message);
@@ -174,10 +211,23 @@ export const boxCommands = {
 
   boxPlay: async () => {
     console.log("Resuming music playback...");
+    const ip = currentIp();
     try {
-      await boxRequest(`netusb/setPlayback?playback=play`, currentIp());
+      if (volumeCache === null) {
+        const status = await boxRequest('main/getStatus', ip);
+        volumeCache = status?.volume ?? 20;
+      }
+
+      if (volumeCache === 0) {
+        boxCommands.boxSetVolume(5);
+      }
+
+      await boxRequest(`netusb/setPlayback?playback=play`, ip);
+      isPausedCache = false;
       return 'Spiele weiter';
     } catch (err) {
+      volumeCache = null;
+      isPausedCache = null;
       console.error("boxPlay failed:", err.message);
       return 'Aktion fehlgeschlagen';
     }
