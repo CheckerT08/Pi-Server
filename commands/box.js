@@ -1,14 +1,14 @@
-import { KÜCHE_BOX_IP, MUSIC_BOX_IP, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON, WOHNZIMMER_BOX_IP } from "../config/env.js";
+import { KUCHE_BOX_IP, MUSIC_BOX_IP, NTFY_BLUETOOTH_OFF, NTFY_BLUETOOTH_ON, WOHNZIMMER_BOX_IP } from "../config/env.js";
 import { sleep } from "../helper_funcs.js";
 
 let volumeCache = null;
 let isPausedCache = null;
 
 async function boxRequest(path, ip) {
+  console.log('making box request', path, 'to ip', ip);
   if (!ip) return;
 
   try {
-    console.log('making box request', path, 'to ip', ip);
     const response = await fetch(`http://${ip}/YamahaExtendedControl/v1/${path}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
@@ -46,14 +46,13 @@ async function waitForDeviceResponding(ip, maxAttempts) {
 let currentDevice = '';
 const deviceNameToIp = {
   'box': MUSIC_BOX_IP,
-  'küche': KÜCHE_BOX_IP,
+  'küche': KUCHE_BOX_IP,
   'wohnzimmer': WOHNZIMMER_BOX_IP,
 }
 const currentIp = () => { return deviceNameToIp[currentDevice] || ''; };
 
 async function toggleDevice(connected, device = currentDevice) {
   const isPassive = !(device in deviceNameToIp);
-
   let powerState = connected ? 'on' : 'standby';
   try {
     if (!isPassive && device !== '') {
